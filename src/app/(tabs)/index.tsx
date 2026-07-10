@@ -1,5 +1,5 @@
 import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedIcon } from '@/components/animated-icon';
@@ -8,6 +8,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
 
 function getDevMenuHint() {
   if (Platform.OS === 'web') {
@@ -29,6 +31,8 @@ function getDevMenuHint() {
 }
 
 export default function HomeScreen() {
+  const { profile } = useAuth();
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -37,6 +41,20 @@ export default function HomeScreen() {
           <ThemedText type="title" style={styles.title}>
             Welcome to&nbsp;Expo
           </ThemedText>
+        </ThemedView>
+
+        <ThemedView type="backgroundElement" style={styles.stepContainer}>
+          <ThemedText type="smallBold">Signed in as {profile?.full_name}</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            Role: {profile?.role} · Phone: {profile?.phone}
+          </ThemedText>
+          <Pressable
+            onPress={() => supabase.auth.signOut()}
+            style={({ pressed }) => [styles.signOutButton, { opacity: pressed ? 0.7 : 1 }]}>
+            <ThemedText type="link" themeColor="text">
+              Sign out
+            </ThemedText>
+          </Pressable>
         </ThemedView>
 
         <ThemedText type="code" style={styles.code}>
@@ -94,5 +112,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.four,
     borderRadius: Spacing.four,
+  },
+  signOutButton: {
+    alignSelf: 'flex-start',
   },
 });
