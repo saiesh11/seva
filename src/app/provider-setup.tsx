@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,6 +18,7 @@ const RADIUS_OPTIONS_KM = [5, 10, 15, 20, 25];
 
 export default function ProviderSetupScreen() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { session, refreshProviderDetails } = useAuth();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -64,12 +66,12 @@ export default function ProviderSetupScreen() {
     try {
       const location = await requestAndGetLocation({ forceRefresh: true });
       if (!location.granted) {
-        setError('Location permission is needed so customers can find you nearby.');
+        setError(t('providerSetup.locationPermissionDenied'));
         return;
       }
       setCoords(location.coords);
     } catch {
-      setError('Could not get your location. Try again.');
+      setError(t('providerSetup.locationError'));
     } finally {
       setLocating(false);
     }
@@ -78,11 +80,11 @@ export default function ProviderSetupScreen() {
   async function handleSubmit() {
     if (!session) return;
     if (selectedSubcategoryIds.size === 0) {
-      setError('Pick at least one service you offer');
+      setError(t('providerSetup.servicesRequired'));
       return;
     }
     if (!coords) {
-      setError('Set your location so customers can find you nearby');
+      setError(t('providerSetup.locationRequired'));
       return;
     }
 
@@ -103,7 +105,7 @@ export default function ProviderSetupScreen() {
 
     if (insertError || !providerDetails) {
       setSubmitting(false);
-      setError(insertError?.message ?? 'Something went wrong. Try again.');
+      setError(insertError?.message ?? t('providerSetup.genericError'));
       return;
     }
 
@@ -129,11 +131,11 @@ export default function ProviderSetupScreen() {
       <SafeAreaView style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <ThemedView style={styles.content}>
-            <ThemedText type="subtitle">Set up your provider profile</ThemedText>
+            <ThemedText type="subtitle">{t('providerSetup.title')}</ThemedText>
 
             <ThemedView style={styles.section}>
-              <ThemedText type="smallBold">What services do you offer?</ThemedText>
-              {loadingCatalog && <ThemedText themeColor="textSecondary">Loading…</ThemedText>}
+              <ThemedText type="smallBold">{t('providerSetup.servicesQuestion')}</ThemedText>
+              {loadingCatalog && <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>}
               {categories.map((category) => (
                 <ThemedView key={category.id} style={styles.categoryBlock}>
                   <ThemedText themeColor="textSecondary">{category.name_en}</ThemedText>
@@ -164,21 +166,21 @@ export default function ProviderSetupScreen() {
             </ThemedView>
 
             <ThemedView style={styles.section}>
-              <ThemedText type="smallBold">Your service location</ThemedText>
+              <ThemedText type="smallBold">{t('providerSetup.locationHeading')}</ThemedText>
               <Pressable
                 onPress={handleUseCurrentLocation}
                 disabled={locating}
                 style={[styles.secondaryButton, { backgroundColor: theme.backgroundElement }]}>
                 <ThemedText type="small">
                   {locating
-                    ? 'Getting location…'
+                    ? t('providerSetup.gettingLocation')
                     : coords
-                      ? 'Location captured ✓ (tap to update)'
-                      : 'Use my current location'}
+                      ? t('providerSetup.locationCaptured')
+                      : t('providerSetup.useCurrentLocation')}
                 </ThemedText>
               </Pressable>
 
-              <ThemedText type="smallBold">Service radius</ThemedText>
+              <ThemedText type="smallBold">{t('providerSetup.serviceRadius')}</ThemedText>
               <ThemedView style={styles.chipWrap}>
                 {RADIUS_OPTIONS_KM.map((km) => {
                   const selected = radiusKm === km;
@@ -191,7 +193,7 @@ export default function ProviderSetupScreen() {
                         { backgroundColor: selected ? theme.text : theme.backgroundElement },
                       ]}>
                       <ThemedText type="small" style={{ color: selected ? theme.background : theme.text }}>
-                        {km} km
+                        {t('providerSetup.kmSuffix', { km })}
                       </ThemedText>
                     </Pressable>
                   );
@@ -200,21 +202,21 @@ export default function ProviderSetupScreen() {
             </ThemedView>
 
             <ThemedView style={styles.section}>
-              <ThemedText type="smallBold">Years of experience (optional)</ThemedText>
+              <ThemedText type="smallBold">{t('providerSetup.yearsExperienceLabel')}</ThemedText>
               <TextInput
                 value={yearsExperience}
                 onChangeText={(text) => setYearsExperience(text.replace(/[^0-9]/g, ''))}
                 keyboardType="number-pad"
-                placeholder="e.g. 5"
+                placeholder={t('providerSetup.yearsExperiencePlaceholder')}
                 placeholderTextColor={theme.textSecondary}
                 style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
               />
 
-              <ThemedText type="smallBold">Short bio (optional)</ThemedText>
+              <ThemedText type="smallBold">{t('providerSetup.bioLabel')}</ThemedText>
               <TextInput
                 value={bio}
                 onChangeText={setBio}
-                placeholder="Tell customers a bit about your work"
+                placeholder={t('providerSetup.bioPlaceholder')}
                 placeholderTextColor={theme.textSecondary}
                 multiline
                 style={[
@@ -235,7 +237,7 @@ export default function ProviderSetupScreen() {
                 { backgroundColor: theme.text, opacity: pressed || submitting ? 0.7 : 1 },
               ]}>
               <ThemedText style={{ color: theme.background }} type="smallBold">
-                {submitting ? 'Saving…' : 'Finish setup'}
+                {submitting ? t('providerSetup.saving') : t('providerSetup.finish')}
               </ThemedText>
             </Pressable>
           </ThemedView>

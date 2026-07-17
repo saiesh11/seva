@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,6 +16,7 @@ type Category = { id: string; name_en: string };
 export default function HomeScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,15 +36,15 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.header}>
-          <ThemedText type="subtitle">What do you need?</ThemedText>
+          <ThemedText type="subtitle">{t('home.title')}</ThemedText>
           <ThemedText themeColor="textSecondary">
-            Hi {profile?.full_name ?? 'there'}, pick a category to find nearby providers.
+            {t('home.greeting', { name: profile?.full_name ?? 'there' })}
           </ThemedText>
         </ThemedView>
 
-        {loading && <ThemedText themeColor="textSecondary">Loading…</ThemedText>}
+        {loading && <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>}
         {!loading && categories.length === 0 && (
-          <ThemedText themeColor="textSecondary">No categories yet.</ThemedText>
+          <ThemedText themeColor="textSecondary">{t('home.noCategories')}</ThemedText>
         )}
 
         <FlatList

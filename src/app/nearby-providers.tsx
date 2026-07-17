@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Linking, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,6 +24,7 @@ type NearbyProvider = {
 export default function NearbyProvidersScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const { subcategoryId, subcategoryName } = useLocalSearchParams<{
     subcategoryId: string;
     subcategoryName: string;
@@ -39,7 +41,7 @@ export default function NearbyProvidersScreen() {
     try {
       const location = await requestAndGetLocation();
       if (!location.granted) {
-        setError('Location permission is needed to find providers near you.');
+        setError(t('nearbyProviders.locationPermissionDenied'));
         return;
       }
 
@@ -55,11 +57,11 @@ export default function NearbyProvidersScreen() {
         setProviders(data ?? []);
       }
     } catch {
-      setError('Could not get your location. Try again.');
+      setError(t('nearbyProviders.locationError'));
     } finally {
       setLoading(false);
     }
-  }, [subcategoryId]);
+  }, [subcategoryId, t]);
 
   useEffect(() => {
     search();
@@ -71,13 +73,15 @@ export default function NearbyProvidersScreen() {
         <ThemedView style={styles.header}>
           <Pressable onPress={() => router.back()}>
             <ThemedText type="link" themeColor="textSecondary">
-              ‹ Back
+              {t('common.back')}
             </ThemedText>
           </Pressable>
           <ThemedText type="subtitle">{subcategoryName}</ThemedText>
         </ThemedView>
 
-        {loading && <ThemedText themeColor="textSecondary">Finding providers near you…</ThemedText>}
+        {loading && (
+          <ThemedText themeColor="textSecondary">{t('nearbyProviders.searching')}</ThemedText>
+        )}
 
         {!loading && error && (
           <ThemedView style={styles.section}>
@@ -85,13 +89,13 @@ export default function NearbyProvidersScreen() {
             <Pressable
               onPress={search}
               style={[styles.retryButton, { backgroundColor: theme.backgroundElement }]}>
-              <ThemedText type="small">Try again</ThemedText>
+              <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
             </Pressable>
           </ThemedView>
         )}
 
         {!loading && !error && providers && providers.length === 0 && (
-          <ThemedText themeColor="textSecondary">No providers found nearby for this yet.</ThemedText>
+          <ThemedText themeColor="textSecondary">{t('nearbyProviders.empty')}</ThemedText>
         )}
 
         <FlatList
@@ -101,10 +105,14 @@ export default function NearbyProvidersScreen() {
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <ThemedView type="backgroundElement" style={styles.card}>
-              <ThemedText type="smallBold">{item.full_name ?? 'Provider'}</ThemedText>
+              <ThemedText type="smallBold">
+                {item.full_name ?? t('nearbyProviders.fallbackName')}
+              </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                {item.distance_km.toFixed(1)} km away
-                {item.years_experience ? ` · ${item.years_experience} yrs experience` : ''}
+                {t('nearbyProviders.distanceAway', { distance: item.distance_km.toFixed(1) })}
+                {item.years_experience
+                  ? ` · ${t('nearbyProviders.yearsExperience', { years: item.years_experience })}`
+                  : ''}
               </ThemedText>
               {item.bio && (
                 <ThemedText type="small" themeColor="textSecondary">
@@ -115,7 +123,7 @@ export default function NearbyProvidersScreen() {
                 onPress={() => item.phone && Linking.openURL(`tel:${item.phone}`)}
                 style={[styles.callButton, { backgroundColor: theme.text }]}>
                 <ThemedText type="smallBold" style={{ color: theme.background }}>
-                  Call
+                  {t('nearbyProviders.call')}
                 </ThemedText>
               </Pressable>
             </ThemedView>

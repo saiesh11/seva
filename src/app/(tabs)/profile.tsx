@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,6 +19,7 @@ type MyListing = {
 
 export default function ProfileScreen() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { profile, hasProviderDetails } = useAuth();
   const [listing, setListing] = useState<MyListing | null>(null);
   const [loadingListing, setLoadingListing] = useState(false);
@@ -72,7 +74,7 @@ export default function ProfileScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <ThemedText type="subtitle">Profile</ThemedText>
+          <ThemedText type="subtitle">{t('profile.title')}</ThemedText>
 
           <ThemedView type="backgroundElement" style={styles.card}>
             <ThemedText type="smallBold">{profile?.full_name}</ThemedText>
@@ -80,25 +82,31 @@ export default function ProfileScreen() {
               {profile?.phone}
             </ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              Account type: {profile?.role}
+              {t('profile.accountType', {
+                role: profile?.role ? t(`roleLabels.${profile.role}`) : '',
+              })}
             </ThemedText>
           </ThemedView>
 
           {isProviderRole && (
             <ThemedView type="backgroundElement" style={styles.card}>
-              <ThemedText type="smallBold">Your listing</ThemedText>
-              {loadingListing && <ThemedText themeColor="textSecondary">Loading…</ThemedText>}
+              <ThemedText type="smallBold">{t('profile.yourListing')}</ThemedText>
+              {loadingListing && (
+                <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>
+              )}
               {!loadingListing && listing && (
                 <>
                   <ThemedText type="small" themeColor="textSecondary">
-                    Services: {listing.services.join(', ') || 'None yet'}
+                    {t('profile.services', {
+                      services: listing.services.join(', ') || t('profile.noServicesYet'),
+                    })}
                   </ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">
-                    Service radius: {listing.service_radius_km} km
+                    {t('profile.serviceRadius', { radius: listing.service_radius_km })}
                   </ThemedText>
                   {listing.years_experience != null && (
                     <ThemedText type="small" themeColor="textSecondary">
-                      Experience: {listing.years_experience} yrs
+                      {t('profile.experience', { years: listing.years_experience })}
                     </ThemedText>
                   )}
                   {listing.bio && (
@@ -114,7 +122,7 @@ export default function ProfileScreen() {
           <Pressable
             onPress={() => supabase.auth.signOut()}
             style={[styles.signOutButton, { backgroundColor: theme.backgroundElement }]}>
-            <ThemedText type="smallBold">Sign out</ThemedText>
+            <ThemedText type="smallBold">{t('profile.signOut')}</ThemedText>
           </Pressable>
         </ScrollView>
       </SafeAreaView>

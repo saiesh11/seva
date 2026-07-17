@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,13 +13,14 @@ import { supabase } from '@/lib/supabase';
 export default function PhoneScreen() {
   const router = useRouter();
   const theme = useTheme();
+  const { t } = useTranslation();
   const [digits, setDigits] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSendCode() {
     if (digits.length !== 10) {
-      setError('Enter a 10-digit phone number');
+      setError(t('phone.invalidNumber'));
       return;
     }
 
@@ -44,10 +46,8 @@ export default function PhoneScreen() {
       <ThemedView style={styles.flex}>
         <SafeAreaView style={styles.safeArea}>
           <ThemedView style={styles.content}>
-            <ThemedText type="subtitle">Enter your phone number</ThemedText>
-            <ThemedText themeColor="textSecondary">
-              We&apos;ll text you a code to verify it&apos;s you.
-            </ThemedText>
+            <ThemedText type="subtitle">{t('phone.title')}</ThemedText>
+            <ThemedText themeColor="textSecondary">{t('phone.subtitle')}</ThemedText>
 
             <ThemedView
               type="backgroundElement"
@@ -82,7 +82,7 @@ export default function PhoneScreen() {
                 { backgroundColor: theme.text, opacity: pressed || loading ? 0.7 : 1 },
               ]}>
               <ThemedText style={{ color: theme.background }} type="smallBold">
-                {loading ? 'Sending…' : 'Send code'}
+                {loading ? t('phone.sending') : t('phone.sendCode')}
               </ThemedText>
             </Pressable>
           </ThemedView>

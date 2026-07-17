@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,6 +13,7 @@ import { supabase } from '@/lib/supabase';
 export default function VerifyScreen() {
   const router = useRouter();
   const theme = useTheme();
+  const { t } = useTranslation();
   const { phone } = useLocalSearchParams<{ phone: string }>();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function VerifyScreen() {
 
   async function handleVerify() {
     if (code.trim().length < 4) {
-      setError('Enter the code you received');
+      setError(t('verify.invalidCode'));
       return;
     }
 
@@ -57,8 +59,8 @@ export default function VerifyScreen() {
       <ThemedView style={styles.flex}>
         <SafeAreaView style={styles.safeArea}>
           <ThemedView style={styles.content}>
-            <ThemedText type="subtitle">Enter the code</ThemedText>
-            <ThemedText themeColor="textSecondary">Sent to {phone}</ThemedText>
+            <ThemedText type="subtitle">{t('verify.title')}</ThemedText>
+            <ThemedText themeColor="textSecondary">{t('verify.sentTo', { phone })}</ThemedText>
 
             <TextInput
               value={code}
@@ -81,19 +83,19 @@ export default function VerifyScreen() {
                 { backgroundColor: theme.text, opacity: pressed || loading ? 0.7 : 1 },
               ]}>
               <ThemedText style={{ color: theme.background }} type="smallBold">
-                {loading ? 'Verifying…' : 'Verify'}
+                {loading ? t('verify.verifying') : t('verify.verify')}
               </ThemedText>
             </Pressable>
 
             <Pressable onPress={handleResend} disabled={resending}>
               <ThemedText type="link" themeColor="textSecondary">
-                {resending ? 'Resending…' : "Didn't get a code? Resend"}
+                {resending ? t('verify.resending') : t('verify.resend')}
               </ThemedText>
             </Pressable>
 
             <Pressable onPress={() => router.back()}>
               <ThemedText type="link" themeColor="textSecondary">
-                Change phone number
+                {t('verify.changeNumber')}
               </ThemedText>
             </Pressable>
           </ThemedView>

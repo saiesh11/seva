@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,6 +15,7 @@ type Subcategory = { id: string; name_en: string };
 export default function SubcategoriesScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const { categoryId, categoryName } = useLocalSearchParams<{
     categoryId: string;
     categoryName: string;
@@ -39,15 +41,15 @@ export default function SubcategoriesScreen() {
         <ThemedView style={styles.header}>
           <Pressable onPress={() => router.back()}>
             <ThemedText type="link" themeColor="textSecondary">
-              ‹ Back
+              {t('common.back')}
             </ThemedText>
           </Pressable>
           <ThemedText type="subtitle">{categoryName}</ThemedText>
         </ThemedView>
 
-        {loading && <ThemedText themeColor="textSecondary">Loading…</ThemedText>}
+        {loading && <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>}
         {!loading && subcategories.length === 0 && (
-          <ThemedText themeColor="textSecondary">No services listed under this category yet.</ThemedText>
+          <ThemedText themeColor="textSecondary">{t('subcategories.empty')}</ThemedText>
         )}
 
         <FlatList

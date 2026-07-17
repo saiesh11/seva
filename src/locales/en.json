@@ -1,0 +1,89 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "back": "‹ Back",
+    "tryAgain": "Try again"
+  },
+  "phone": {
+    "title": "Enter your phone number",
+    "subtitle": "We'll text you a code to verify it's you.",
+    "invalidNumber": "Enter a 10-digit phone number",
+    "sendCode": "Send code",
+    "sending": "Sending…"
+  },
+  "verify": {
+    "title": "Enter the code",
+    "sentTo": "Sent to {{phone}}",
+    "invalidCode": "Enter the code you received",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "resend": "Didn't get a code? Resend",
+    "resending": "Resending…",
+    "changeNumber": "Change phone number"
+  },
+  "role": {
+    "title": "A couple of details",
+    "namePlaceholder": "Your name",
+    "customer": "I'm looking for services",
+    "provider": "I offer services",
+    "both": "Both",
+    "nameRequired": "Enter your name",
+    "roleRequired": "Pick one to continue",
+    "continue": "Continue",
+    "saving": "Saving…"
+  },
+  "providerSetup": {
+    "title": "Set up your provider profile",
+    "servicesQuestion": "What services do you offer?",
+    "locationHeading": "Your service location",
+    "gettingLocation": "Getting location…",
+    "locationCaptured": "Location captured ✓ (tap to update)",
+    "useCurrentLocation": "Use my current location",
+    "serviceRadius": "Service radius",
+    "kmSuffix": "{{km}} km",
+    "yearsExperienceLabel": "Years of experience (optional)",
+    "yearsExperiencePlaceholder": "e.g. 5",
+    "bioLabel": "Short bio (optional)",
+    "bioPlaceholder": "Tell customers a bit about your work",
+    "servicesRequired": "Pick at least one service you offer",
+    "locationRequired": "Set your location so customers can find you nearby",
+    "locationPermissionDenied": "Location permission is needed so customers can find you nearby.",
+    "locationError": "Could not get your location. Try again.",
+    "genericError": "Something went wrong. Try again.",
+    "finish": "Finish setup",
+    "saving": "Saving…"
+  },
+  "home": {
+    "title": "What do you need?",
+    "greeting": "Hi {{name}}, pick a category to find nearby providers.",
+    "noCategories": "No categories yet."
+  },
+  "subcategories": {
+    "empty": "No services listed under this category yet."
+  },
+  "nearbyProviders": {
+    "fallbackName": "Provider",
+    "searching": "Finding providers near you…",
+    "locationPermissionDenied": "Location permission is needed to find providers near you.",
+    "locationError": "Could not get your location. Try again.",
+    "empty": "No providers found nearby for this yet.",
+    "distanceAway": "{{distance}} km away",
+    "yearsExperience": "{{years}} yrs experience",
+    "call": "Call"
+  },
+  "profile": {
+    "title": "Profile",
+    "accountType": "Account type: {{role}}",
+    "yourListing": "Your listing",
+    "services": "Services: {{services}}",
+    "noServicesYet": "None yet",
+    "serviceRadius": "Service radius: {{radius}} km",
+    "experience": "Experience: {{years}} yrs",
+    "signOut": "Sign out"
+  },
+  "roleLabels": {
+    "customer": "customer",
+    "provider": "provider",
+    "both": "both"
+  }
+}

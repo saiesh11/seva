@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,13 +11,14 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 
 const ROLE_OPTIONS = [
-  { value: 'customer', label: "I'm looking for services" },
-  { value: 'provider', label: 'I offer services' },
-  { value: 'both', label: 'Both' },
+  { value: 'customer', labelKey: 'role.customer' },
+  { value: 'provider', labelKey: 'role.provider' },
+  { value: 'both', labelKey: 'role.both' },
 ] as const;
 
 export default function RoleScreen() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { session, refreshProfile } = useAuth();
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<(typeof ROLE_OPTIONS)[number]['value'] | null>(null);
@@ -26,11 +28,11 @@ export default function RoleScreen() {
   async function handleContinue() {
     if (!session) return;
     if (fullName.trim().length < 2) {
-      setError('Enter your name');
+      setError(t('role.nameRequired'));
       return;
     }
     if (!role) {
-      setError('Pick one to continue');
+      setError(t('role.roleRequired'));
       return;
     }
 
@@ -60,12 +62,12 @@ export default function RoleScreen() {
       <ThemedView style={styles.flex}>
         <SafeAreaView style={styles.safeArea}>
           <ThemedView style={styles.content}>
-            <ThemedText type="subtitle">A couple of details</ThemedText>
+            <ThemedText type="subtitle">{t('role.title')}</ThemedText>
 
             <TextInput
               value={fullName}
               onChangeText={setFullName}
-              placeholder="Your name"
+              placeholder={t('role.namePlaceholder')}
               placeholderTextColor={theme.textSecondary}
               textContentType="name"
               autoFocus
@@ -86,7 +88,7 @@ export default function RoleScreen() {
                       },
                     ]}>
                     <ThemedText style={{ color: selected ? theme.background : theme.text }}>
-                      {option.label}
+                      {t(option.labelKey)}
                     </ThemedText>
                   </Pressable>
                 );
@@ -103,7 +105,7 @@ export default function RoleScreen() {
                 { backgroundColor: theme.text, opacity: pressed || loading ? 0.7 : 1 },
               ]}>
               <ThemedText style={{ color: theme.background }} type="smallBold">
-                {loading ? 'Saving…' : 'Continue'}
+                {loading ? t('role.saving') : t('role.continue')}
               </ThemedText>
             </Pressable>
           </ThemedView>
