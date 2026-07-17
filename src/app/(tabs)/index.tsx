@@ -34,14 +34,7 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.header}>
-          <ThemedView style={styles.headerRow}>
-            <ThemedText type="subtitle">What do you need?</ThemedText>
-            <Pressable onPress={() => supabase.auth.signOut()}>
-              <ThemedText type="link" themeColor="textSecondary">
-                Sign out
-              </ThemedText>
-            </Pressable>
-          </ThemedView>
+          <ThemedText type="subtitle">What do you need?</ThemedText>
           <ThemedText themeColor="textSecondary">
             Hi {profile?.full_name ?? 'there'}, pick a category to find nearby providers.
           </ThemedText>
@@ -93,11 +86,6 @@ const styles = StyleSheet.create({
   header: {
     gap: Spacing.one,
     paddingTop: Spacing.two,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   list: {
     flex: 1,
