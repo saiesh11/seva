@@ -1,5 +1,4 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as Location from 'expo-location';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { requestAndGetLocation } from '@/lib/location';
 import { supabase } from '@/lib/supabase';
 
 type NearbyProvider = {
@@ -36,19 +36,17 @@ export default function NearbyProvidersScreen() {
     setLoading(true);
     setError(null);
 
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setLoading(false);
-      setError('Location permission is needed to find providers near you.');
-      return;
-    }
-
     try {
-      const position = await Location.getCurrentPositionAsync({});
+      const location = await requestAndGetLocation();
+      if (!location.granted) {
+        setError('Location permission is needed to find providers near you.');
+        return;
+      }
+
       const { data, error: rpcError } = await supabase.rpc('nearby_providers', {
         p_subcategory_id: subcategoryId,
-        p_lat: position.coords.latitude,
-        p_lng: position.coords.longitude,
+        p_lat: location.coords.latitude,
+        p_lng: location.coords.longitude,
       });
 
       if (rpcError) {

@@ -1,4 +1,3 @@
-import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/auth-context';
+import { requestAndGetLocation } from '@/lib/location';
 import { supabase } from '@/lib/supabase';
 
 type Category = { id: string; name_en: string };
@@ -61,15 +61,13 @@ export default function ProviderSetupScreen() {
   async function handleUseCurrentLocation() {
     setError(null);
     setLocating(true);
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setLocating(false);
-      setError('Location permission is needed so customers can find you nearby.');
-      return;
-    }
     try {
-      const position = await Location.getCurrentPositionAsync({});
-      setCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+      const location = await requestAndGetLocation({ forceRefresh: true });
+      if (!location.granted) {
+        setError('Location permission is needed so customers can find you nearby.');
+        return;
+      }
+      setCoords(location.coords);
     } catch {
       setError('Could not get your location. Try again.');
     } finally {
