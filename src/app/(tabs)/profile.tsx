@@ -103,7 +103,7 @@ export default function ProfileScreen() {
                     styles.editButton,
                     { backgroundColor: theme.backgroundSelected, opacity: pressed ? 0.7 : 1 },
                   ]}>
-                  <ThemedText type="small">✏️ {t('profile.editListing')}</ThemedText>
+                  <ThemedText type="small">⚙️ {t('profile.editListing')}</ThemedText>
                 </Pressable>
               </ThemedView>
               {loadingListing && (
