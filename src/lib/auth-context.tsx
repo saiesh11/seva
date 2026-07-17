@@ -15,8 +15,10 @@ export type Profile = {
 type AuthContextValue = {
   session: Session | null;
   profile: Profile | null;
+  hasProviderDetails: boolean | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  refreshProviderDetails: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -24,18 +26,43 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [hasProviderDetails, setHasProviderDetails] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
-    setProfile(data);
+  const loadProviderDetails = useCallback(async (userId: string) => {
+    const { data } = await supabase
+      .from('provider_details')
+      .select('id')
+      .eq('profile_id', userId)
+      .maybeSingle();
+    setHasProviderDetails(!!data);
   }, []);
+
+  const loadProfile = useCallback(
+    async (userId: string) => {
+      const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      setProfile(data);
+
+      if (data && (data.role === 'provider' || data.role === 'both')) {
+        await loadProviderDetails(userId);
+      } else {
+        setHasProviderDetails(null);
+      }
+    },
+    [loadProviderDetails]
+  );
 
   const refreshProfile = useCallback(async () => {
     if (session) {
       await loadProfile(session.user.id);
     }
   }, [session, loadProfile]);
+
+  const refreshProviderDetails = useCallback(async () => {
+    if (session) {
+      await loadProviderDetails(session.user.id);
+    }
+  }, [session, loadProviderDetails]);
 
   useEffect(() => {
     let isMounted = true;
@@ -57,6 +84,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         await loadProfile(nextSession.user.id);
       } else {
         setProfile(null);
+        setHasProviderDetails(null);
       }
     });
 
@@ -67,7 +95,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [loadProfile]);
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, refreshProfile }}>
+    <AuthContext.Provider
+      value={{ session, profile, hasProviderDetails, loading, refreshProfile, refreshProviderDetails }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,59 +1,57 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 
-type Category = { id: string; name_en: string };
+type Subcategory = { id: string; name_en: string };
 
-export default function HomeScreen() {
+export default function SubcategoriesScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { profile } = useAuth();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { categoryId, categoryName } = useLocalSearchParams<{
+    categoryId: string;
+    categoryName: string;
+  }>();
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase
-      .from('categories')
+      .from('subcategories')
       .select('id, name_en')
+      .eq('category_id', categoryId)
       .order('name_en')
       .then(({ data }) => {
-        setCategories(data ?? []);
+        setSubcategories(data ?? []);
         setLoading(false);
       });
-  }, []);
+  }, [categoryId]);
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.header}>
-          <ThemedView style={styles.headerRow}>
-            <ThemedText type="subtitle">What do you need?</ThemedText>
-            <Pressable onPress={() => supabase.auth.signOut()}>
-              <ThemedText type="link" themeColor="textSecondary">
-                Sign out
-              </ThemedText>
-            </Pressable>
-          </ThemedView>
-          <ThemedText themeColor="textSecondary">
-            Hi {profile?.full_name ?? 'there'}, pick a category to find nearby providers.
-          </ThemedText>
+          <Pressable onPress={() => router.back()}>
+            <ThemedText type="link" themeColor="textSecondary">
+              ‹ Back
+            </ThemedText>
+          </Pressable>
+          <ThemedText type="subtitle">{categoryName}</ThemedText>
         </ThemedView>
 
         {loading && <ThemedText themeColor="textSecondary">Loading…</ThemedText>}
-        {!loading && categories.length === 0 && (
-          <ThemedText themeColor="textSecondary">No categories yet.</ThemedText>
+        {!loading && subcategories.length === 0 && (
+          <ThemedText themeColor="textSecondary">No services listed under this category yet.</ThemedText>
         )}
 
         <FlatList
-          data={categories}
+          data={subcategories}
           keyExtractor={(item) => item.id}
           style={styles.list}
           contentContainerStyle={styles.listContent}
@@ -61,12 +59,12 @@ export default function HomeScreen() {
             <Pressable
               onPress={() =>
                 router.push({
-                  pathname: '/subcategories',
-                  params: { categoryId: item.id, categoryName: item.name_en },
+                  pathname: '/nearby-providers',
+                  params: { subcategoryId: item.id, subcategoryName: item.name_en },
                 })
               }
               style={({ pressed }) => [
-                styles.categoryRow,
+                styles.row,
                 { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
               ]}>
               <ThemedText type="default">{item.name_en}</ThemedText>
@@ -94,20 +92,14 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
     paddingTop: Spacing.two,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   list: {
     flex: 1,
     alignSelf: 'stretch',
   },
   listContent: {
     gap: Spacing.two,
-    paddingBottom: BottomTabInset + Spacing.three,
   },
-  categoryRow: {
+  row: {
     borderRadius: Spacing.two,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.three,

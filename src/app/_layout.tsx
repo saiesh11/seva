@@ -8,7 +8,8 @@ import { AuthProvider, useAuth } from '@/lib/auth-context';
 SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
-  const { session, profile } = useAuth();
+  const { session, profile, hasProviderDetails } = useAuth();
+  const isProviderRole = profile?.role === 'provider' || profile?.role === 'both';
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -20,8 +21,15 @@ function RootNavigator() {
         <Stack.Screen name="role" />
       </Stack.Protected>
 
-      <Stack.Protected guard={!!session && !!profile}>
+      <Stack.Protected guard={!!session && !!profile && isProviderRole && !hasProviderDetails}>
+        <Stack.Screen name="provider-setup" />
+      </Stack.Protected>
+
+      <Stack.Protected
+        guard={!!session && !!profile && (!isProviderRole || !!hasProviderDetails)}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="subcategories" />
+        <Stack.Screen name="nearby-providers" />
       </Stack.Protected>
     </Stack>
   );
