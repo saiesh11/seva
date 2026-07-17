@@ -94,7 +94,18 @@ export default function ProfileScreen() {
 
           {isProviderRole && (
             <ThemedView type="backgroundElement" style={styles.card}>
-              <ThemedText type="smallBold">{t('profile.yourListing')}</ThemedText>
+              <ThemedView style={styles.cardHeader}>
+                <ThemedText type="smallBold">{t('profile.yourListing')}</ThemedText>
+                <Pressable
+                  onPress={() => router.push('/edit-listing')}
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    styles.editButton,
+                    { backgroundColor: theme.backgroundSelected, opacity: pressed ? 0.7 : 1 },
+                  ]}>
+                  <ThemedText type="small">✏️ {t('profile.editListing')}</ThemedText>
+                </Pressable>
+              </ThemedView>
               {loadingListing && (
                 <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>
               )}
@@ -118,9 +129,6 @@ export default function ProfileScreen() {
                       {listing.bio}
                     </ThemedText>
                   )}
-                  <Pressable onPress={() => router.push('/edit-listing')} style={styles.editButton}>
-                    <ThemedText type="link">{t('profile.editListing')}</ThemedText>
-                  </Pressable>
                 </>
               )}
             </ThemedView>
@@ -158,9 +166,15 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     gap: Spacing.one,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   editButton: {
-    alignSelf: 'flex-start',
-    marginTop: Spacing.one,
+    borderRadius: Spacing.four,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
   },
   signOutButton: {
     borderRadius: Spacing.two,
