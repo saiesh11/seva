@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +20,7 @@ type MyListing = {
 
 export default function ProfileScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const { t } = useTranslation();
   const { profile, hasProviderDetails } = useAuth();
   const [listing, setListing] = useState<MyListing | null>(null);
@@ -26,49 +28,51 @@ export default function ProfileScreen() {
 
   const isProviderRole = profile?.role === 'provider' || profile?.role === 'both';
 
-  useEffect(() => {
-    if (!isProviderRole || !hasProviderDetails || !profile) {
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingListing(true);
-
-    async function loadListing() {
-      const { data: details } = await supabase
-        .from('provider_details')
-        .select('id, bio, years_experience, service_radius_km')
-        .eq('profile_id', profile!.id)
-        .maybeSingle();
-
-      if (!details) {
-        if (!cancelled) setLoadingListing(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!isProviderRole || !hasProviderDetails || !profile) {
         return;
       }
 
-      const { data: services } = await supabase
-        .from('provider_services')
-        .select('subcategories(name_en)')
-        .eq('provider_id', details.id);
+      let cancelled = false;
+      setLoadingListing(true);
 
-      if (cancelled) return;
+      async function loadListing() {
+        const { data: details } = await supabase
+          .from('provider_details')
+          .select('id, bio, years_experience, service_radius_km')
+          .eq('profile_id', profile!.id)
+          .maybeSingle();
 
-      setListing({
-        bio: details.bio,
-        years_experience: details.years_experience,
-        service_radius_km: details.service_radius_km,
-        services: (services ?? [])
-          .map((row: any) => row.subcategories?.name_en)
-          .filter((name: string | undefined): name is string => Boolean(name)),
-      });
-      setLoadingListing(false);
-    }
+        if (!details) {
+          if (!cancelled) setLoadingListing(false);
+          return;
+        }
 
-    loadListing();
-    return () => {
-      cancelled = true;
-    };
-  }, [isProviderRole, hasProviderDetails, profile]);
+        const { data: services } = await supabase
+          .from('provider_services')
+          .select('subcategories(name_en)')
+          .eq('provider_id', details.id);
+
+        if (cancelled) return;
+
+        setListing({
+          bio: details.bio,
+          years_experience: details.years_experience,
+          service_radius_km: details.service_radius_km,
+          services: (services ?? [])
+            .map((row: any) => row.subcategories?.name_en)
+            .filter((name: string | undefined): name is string => Boolean(name)),
+        });
+        setLoadingListing(false);
+      }
+
+      loadListing();
+      return () => {
+        cancelled = true;
+      };
+    }, [isProviderRole, hasProviderDetails, profile])
+  );
 
   return (
     <ThemedView style={styles.container}>
@@ -114,6 +118,9 @@ export default function ProfileScreen() {
                       {listing.bio}
                     </ThemedText>
                   )}
+                  <Pressable onPress={() => router.push('/edit-listing')} style={styles.editButton}>
+                    <ThemedText type="link">{t('profile.editListing')}</ThemedText>
+                  </Pressable>
                 </>
               )}
             </ThemedView>
@@ -150,6 +157,10 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     padding: Spacing.three,
     gap: Spacing.one,
+  },
+  editButton: {
+    alignSelf: 'flex-start',
+    marginTop: Spacing.one,
   },
   signOutButton: {
     borderRadius: Spacing.two,

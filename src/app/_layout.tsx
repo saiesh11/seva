@@ -31,6 +31,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="subcategories" />
         <Stack.Screen name="nearby-providers" />
+        <Stack.Screen name="edit-listing" />
       </Stack.Protected>
     </Stack>
   );

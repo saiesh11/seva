@@ -79,7 +79,12 @@
     "noServicesYet": "None yet",
     "serviceRadius": "Service radius: {{radius}} km",
     "experience": "Experience: {{years}} yrs",
+    "editListing": "Edit listing",
     "signOut": "Sign out"
+  },
+  "editListing": {
+    "title": "Edit your listing",
+    "save": "Save changes"
   },
   "roleLabels": {
     "customer": "customer",
