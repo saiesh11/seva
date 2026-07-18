@@ -56,7 +56,9 @@
   "home": {
     "title": "What do you need?",
     "greeting": "Hi {{name}}, pick a category to find nearby providers.",
-    "noCategories": "No categories yet."
+    "noCategories": "No categories yet.",
+    "searchPlaceholder": "Search for a service…",
+    "noResults": "No matches for \"{{query}}\""
   },
   "subcategories": {
     "empty": "No services listed under this category yet."
