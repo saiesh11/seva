@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, StyleSheet, TextInput } from 'react-native';
+import { FlatList, Pressable, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -22,10 +22,14 @@ export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { profile } = useAuth();
+  const { width: windowWidth } = useWindowDimensions();
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+
+  const contentWidth = Math.min(windowWidth, MaxContentWidth) - Spacing.four * 2;
+  const tileSize = (contentWidth - Spacing.three * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
 
   useEffect(() => {
     Promise.all([
@@ -94,10 +98,19 @@ export default function HomeScreen() {
               }
               style={({ pressed }) => [
                 styles.tile,
-                { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
+                {
+                  width: tileSize,
+                  height: tileSize,
+                  backgroundColor: theme.backgroundElement,
+                  opacity: pressed ? 0.7 : 1,
+                },
               ]}>
               <ThemedText style={styles.tileIcon}>{getCategoryIcon(item.name_en)}</ThemedText>
-              <ThemedText type="small" style={styles.tileLabel}>
+              <ThemedText
+                type="small"
+                style={styles.tileLabel}
+                numberOfLines={2}
+                ellipsizeMode="tail">
                 {item.name_en}
               </ThemedText>
             </Pressable>
@@ -142,8 +155,6 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   tile: {
-    flex: 1,
-    aspectRatio: 1,
     borderRadius: Spacing.three,
     alignItems: 'center',
     justifyContent: 'center',
@@ -152,6 +163,7 @@ const styles = StyleSheet.create({
   },
   tileIcon: {
     fontSize: 32,
+    lineHeight: 40,
   },
   tileLabel: {
     textAlign: 'center',
