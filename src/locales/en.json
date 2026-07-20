@@ -2,7 +2,9 @@
   "common": {
     "loading": "Loading…",
     "back": "‹ Back",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "openSettings": "Open Settings",
+    "loadError": "Couldn't load this. Check your connection and try again."
   },
   "phone": {
     "title": "Enter your phone number",
@@ -48,6 +50,7 @@
     "servicesRequired": "Pick at least one service you offer",
     "locationRequired": "Set your location so customers can find you nearby",
     "locationPermissionDenied": "Location permission is needed so customers can find you nearby.",
+    "locationPermissionBlocked": "Location access is turned off for this app. Open Settings to enable it.",
     "locationError": "Could not get your location. Try again.",
     "genericError": "Something went wrong. Try again.",
     "finish": "Finish setup",
@@ -67,6 +70,7 @@
     "fallbackName": "Provider",
     "searching": "Finding providers near you…",
     "locationPermissionDenied": "Location permission is needed to find providers near you.",
+    "locationPermissionBlocked": "Location access is turned off for this app. Open Settings to enable it.",
     "locationError": "Could not get your location. Try again.",
     "empty": "No providers found nearby for this yet.",
     "distanceAway": "{{distance}} km away",

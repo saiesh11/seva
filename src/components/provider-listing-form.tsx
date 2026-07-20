@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import * as ExpoLinking from 'expo-linking';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, TextInput } from 'react-native';
 
@@ -49,6 +50,7 @@ export function ProviderListingForm({
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
+  const [catalogError, setCatalogError] = useState(false);
 
   const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState<Set<string>>(
     new Set(initialSubcategoryIds ?? [])
@@ -64,20 +66,29 @@ export function ProviderListingForm({
   const [locating, setLocating] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
+  const [permissionBlocked, setPermissionBlocked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    async function loadCatalog() {
-      const [categoriesRes, subcategoriesRes] = await Promise.all([
-        supabase.from('categories').select('id, name_en').order('name_en'),
-        supabase.from('subcategories').select('id, category_id, name_en').order('name_en'),
-      ]);
-      setCategories(categoriesRes.data ?? []);
-      setSubcategories(subcategoriesRes.data ?? []);
+  const loadCatalog = useCallback(async () => {
+    setLoadingCatalog(true);
+    setCatalogError(false);
+    const [categoriesRes, subcategoriesRes] = await Promise.all([
+      supabase.from('categories').select('id, name_en').order('name_en'),
+      supabase.from('subcategories').select('id, category_id, name_en').order('name_en'),
+    ]);
+    if (categoriesRes.error || subcategoriesRes.error) {
+      setCatalogError(true);
       setLoadingCatalog(false);
+      return;
     }
-    loadCatalog();
+    setCategories(categoriesRes.data ?? []);
+    setSubcategories(subcategoriesRes.data ?? []);
+    setLoadingCatalog(false);
   }, []);
+
+  useEffect(() => {
+    loadCatalog();
+  }, [loadCatalog]);
 
   function toggleSubcategory(id: string) {
     setSelectedSubcategoryIds((prev) => {
@@ -93,11 +104,17 @@ export function ProviderListingForm({
 
   async function handleUseCurrentLocation() {
     setError(null);
+    setPermissionBlocked(false);
     setLocating(true);
     try {
       const location = await requestAndGetLocation({ forceRefresh: true });
       if (!location.granted) {
-        setError(t('providerSetup.locationPermissionDenied'));
+        if (!location.canAskAgain) {
+          setPermissionBlocked(true);
+          setError(t('providerSetup.locationPermissionBlocked'));
+        } else {
+          setError(t('providerSetup.locationPermissionDenied'));
+        }
         return;
       }
       setCoords(location.coords);
@@ -141,6 +158,16 @@ export function ProviderListingForm({
       <ThemedView style={styles.section}>
         <ThemedText type="smallBold">{t('providerSetup.servicesQuestion')}</ThemedText>
         {loadingCatalog && <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>}
+        {!loadingCatalog && catalogError && (
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.error}>{t('common.loadError')}</ThemedText>
+            <Pressable
+              onPress={loadCatalog}
+              style={[styles.secondaryButton, { backgroundColor: theme.backgroundElement }]}>
+              <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
+            </Pressable>
+          </ThemedView>
+        )}
         {categories.map((category) => (
           <ThemedView key={category.id} style={styles.categoryBlock}>
             <ThemedText themeColor="textSecondary">{category.name_en}</ThemedText>
@@ -231,6 +258,14 @@ export function ProviderListingForm({
       </ThemedView>
 
       {error && <ThemedText style={styles.error}>{error}</ThemedText>}
+
+      {permissionBlocked && (
+        <Pressable
+          onPress={() => ExpoLinking.openSettings()}
+          style={[styles.secondaryButton, { backgroundColor: theme.backgroundElement }]}>
+          <ThemedText type="small">{t('common.openSettings')}</ThemedText>
+        </Pressable>
+      )}
 
       <Pressable
         onPress={handleSubmit}

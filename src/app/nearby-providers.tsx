@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as ExpoLinking from 'expo-linking';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Linking, Pressable, StyleSheet } from 'react-native';
@@ -33,15 +34,22 @@ export default function NearbyProvidersScreen() {
   const [providers, setProviders] = useState<NearbyProvider[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [permissionBlocked, setPermissionBlocked] = useState(false);
 
   const search = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setPermissionBlocked(false);
 
     try {
       const location = await requestAndGetLocation();
       if (!location.granted) {
-        setError(t('nearbyProviders.locationPermissionDenied'));
+        if (!location.canAskAgain) {
+          setPermissionBlocked(true);
+          setError(t('nearbyProviders.locationPermissionBlocked'));
+        } else {
+          setError(t('nearbyProviders.locationPermissionDenied'));
+        }
         return;
       }
 
@@ -87,9 +95,11 @@ export default function NearbyProvidersScreen() {
           <ThemedView style={styles.section}>
             <ThemedText style={styles.error}>{error}</ThemedText>
             <Pressable
-              onPress={search}
+              onPress={permissionBlocked ? () => ExpoLinking.openSettings() : search}
               style={[styles.retryButton, { backgroundColor: theme.backgroundElement }]}>
-              <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
+              <ThemedText type="small">
+                {permissionBlocked ? t('common.openSettings') : t('common.tryAgain')}
+              </ThemedText>
             </Pressable>
           </ThemedView>
         )}

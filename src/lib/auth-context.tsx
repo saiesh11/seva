@@ -17,6 +17,7 @@ type AuthContextValue = {
   profile: Profile | null;
   hasProviderDetails: boolean | null;
   loading: boolean;
+  profileError: boolean;
   refreshProfile: () => Promise<void>;
   refreshProviderDetails: () => Promise<void>;
 };
@@ -28,19 +29,36 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [hasProviderDetails, setHasProviderDetails] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
 
   const loadProviderDetails = useCallback(async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('provider_details')
       .select('id')
       .eq('profile_id', userId)
       .maybeSingle();
+
+    if (error) {
+      setProfileError(true);
+      return;
+    }
     setHasProviderDetails(!!data);
   }, []);
 
   const loadProfile = useCallback(
     async (userId: string) => {
-      const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        setProfileError(true);
+        return;
+      }
+
+      setProfileError(false);
       setProfile(data);
 
       if (data && (data.role === 'provider' || data.role === 'both')) {
@@ -85,6 +103,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       } else {
         setProfile(null);
         setHasProviderDetails(null);
+        setProfileError(false);
       }
     });
 
@@ -96,7 +115,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   return (
     <AuthContext.Provider
-      value={{ session, profile, hasProviderDetails, loading, refreshProfile, refreshProviderDetails }}>
+      value={{
+        session,
+        profile,
+        hasProviderDetails,
+        loading,
+        profileError,
+        refreshProfile,
+        refreshProviderDetails,
+      }}>
       {children}
     </AuthContext.Provider>
   );

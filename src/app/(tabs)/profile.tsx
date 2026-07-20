@@ -25,53 +25,61 @@ export default function ProfileScreen() {
   const { profile, hasProviderDetails } = useAuth();
   const [listing, setListing] = useState<MyListing | null>(null);
   const [loadingListing, setLoadingListing] = useState(false);
+  const [listingError, setListingError] = useState(false);
 
   const isProviderRole = profile?.role === 'provider' || profile?.role === 'both';
 
+  const loadListing = useCallback(async () => {
+    if (!isProviderRole || !hasProviderDetails || !profile) {
+      return;
+    }
+
+    setLoadingListing(true);
+    setListingError(false);
+
+    const { data: details, error: detailsError } = await supabase
+      .from('provider_details')
+      .select('id, bio, years_experience, service_radius_km')
+      .eq('profile_id', profile.id)
+      .maybeSingle();
+
+    if (detailsError) {
+      setListingError(true);
+      setLoadingListing(false);
+      return;
+    }
+
+    if (!details) {
+      setLoadingListing(false);
+      return;
+    }
+
+    const { data: services, error: servicesError } = await supabase
+      .from('provider_services')
+      .select('subcategories(name_en)')
+      .eq('provider_id', details.id);
+
+    if (servicesError) {
+      setListingError(true);
+      setLoadingListing(false);
+      return;
+    }
+
+    setListing({
+      bio: details.bio,
+      years_experience: details.years_experience,
+      service_radius_km: details.service_radius_km,
+      services: (services ?? [])
+        .map((row: any) => row.subcategories?.name_en)
+        .filter((name: string | undefined): name is string => Boolean(name)),
+    });
+    setLoadingListing(false);
+  }, [isProviderRole, hasProviderDetails, profile]);
+
   useFocusEffect(
     useCallback(() => {
-      if (!isProviderRole || !hasProviderDetails || !profile) {
-        return;
-      }
-
-      let cancelled = false;
-      setLoadingListing(true);
-
-      async function loadListing() {
-        const { data: details } = await supabase
-          .from('provider_details')
-          .select('id, bio, years_experience, service_radius_km')
-          .eq('profile_id', profile!.id)
-          .maybeSingle();
-
-        if (!details) {
-          if (!cancelled) setLoadingListing(false);
-          return;
-        }
-
-        const { data: services } = await supabase
-          .from('provider_services')
-          .select('subcategories(name_en)')
-          .eq('provider_id', details.id);
-
-        if (cancelled) return;
-
-        setListing({
-          bio: details.bio,
-          years_experience: details.years_experience,
-          service_radius_km: details.service_radius_km,
-          services: (services ?? [])
-            .map((row: any) => row.subcategories?.name_en)
-            .filter((name: string | undefined): name is string => Boolean(name)),
-        });
-        setLoadingListing(false);
-      }
-
       loadListing();
-      return () => {
-        cancelled = true;
-      };
-    }, [isProviderRole, hasProviderDetails, profile])
+    }, [loadListing])
   );
 
   return (
@@ -109,7 +117,17 @@ export default function ProfileScreen() {
               {loadingListing && (
                 <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>
               )}
-              {!loadingListing && listing && (
+              {!loadingListing && listingError && (
+                <ThemedView style={styles.cardHeader}>
+                  <ThemedText style={styles.errorText}>{t('common.loadError')}</ThemedText>
+                  <Pressable
+                    onPress={loadListing}
+                    style={[styles.editButton, { backgroundColor: theme.backgroundSelected }]}>
+                    <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
+                  </Pressable>
+                </ThemedView>
+              )}
+              {!loadingListing && !listingError && listing && (
                 <>
                   <ThemedText type="small" themeColor="textSecondary">
                     {t('profile.services', {
@@ -165,6 +183,9 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     padding: Spacing.three,
     gap: Spacing.one,
+  },
+  errorText: {
+    color: '#D92D20',
   },
   cardHeader: {
     flexDirection: 'row',

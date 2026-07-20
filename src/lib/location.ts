@@ -8,10 +8,12 @@ let cached: (Coords & { timestamp: number }) | null = null;
 
 export async function requestAndGetLocation(options?: {
   forceRefresh?: boolean;
-}): Promise<{ granted: true; coords: Coords } | { granted: false }> {
-  const { status } = await Location.requestForegroundPermissionsAsync();
+}): Promise<
+  { granted: true; coords: Coords } | { granted: false; canAskAgain: boolean }
+> {
+  const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
   if (status !== 'granted') {
-    return { granted: false };
+    return { granted: false, canAskAgain };
   }
 
   if (!options?.forceRefresh && cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {

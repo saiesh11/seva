@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,21 +26,32 @@ export default function HomeScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [query, setQuery] = useState('');
 
   const contentWidth = Math.min(windowWidth, MaxContentWidth) - Spacing.four * 2;
   const tileSize = (contentWidth - Spacing.three * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
 
-  useEffect(() => {
-    Promise.all([
+  const loadCategories = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
+    const [categoriesRes, subcategoriesRes] = await Promise.all([
       supabase.from('categories').select('id, name_en').order('name_en'),
       supabase.from('subcategories').select('id, category_id, name_en'),
-    ]).then(([categoriesRes, subcategoriesRes]) => {
-      setCategories(categoriesRes.data ?? []);
-      setSubcategories(subcategoriesRes.data ?? []);
+    ]);
+    if (categoriesRes.error || subcategoriesRes.error) {
+      setLoadError(true);
       setLoading(false);
-    });
+      return;
+    }
+    setCategories(categoriesRes.data ?? []);
+    setSubcategories(subcategoriesRes.data ?? []);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const filteredCategories = useMemo(() => {
     const trimmed = query.trim().toLowerCase();
@@ -74,10 +85,20 @@ export default function HomeScreen() {
         />
 
         {loading && <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>}
-        {!loading && categories.length === 0 && (
+        {!loading && loadError && (
+          <ThemedView style={styles.header}>
+            <ThemedText style={styles.errorText}>{t('common.loadError')}</ThemedText>
+            <Pressable
+              onPress={loadCategories}
+              style={[styles.retryButton, { backgroundColor: theme.backgroundElement }]}>
+              <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
+            </Pressable>
+          </ThemedView>
+        )}
+        {!loading && !loadError && categories.length === 0 && (
           <ThemedText themeColor="textSecondary">{t('home.noCategories')}</ThemedText>
         )}
-        {!loading && categories.length > 0 && filteredCategories.length === 0 && (
+        {!loading && !loadError && categories.length > 0 && filteredCategories.length === 0 && (
           <ThemedText themeColor="textSecondary">{t('home.noResults', { query })}</ThemedText>
         )}
 
@@ -136,6 +157,15 @@ const styles = StyleSheet.create({
   header: {
     gap: Spacing.one,
     paddingTop: Spacing.two,
+  },
+  errorText: {
+    color: '#D92D20',
+  },
+  retryButton: {
+    alignSelf: 'flex-start',
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
   },
   searchInput: {
     borderRadius: Spacing.four,

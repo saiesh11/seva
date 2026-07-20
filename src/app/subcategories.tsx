@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,18 +22,28 @@ export default function SubcategoriesScreen() {
   }>();
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    supabase
+  const loadSubcategories = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
+    const { data, error } = await supabase
       .from('subcategories')
       .select('id, name_en')
       .eq('category_id', categoryId)
-      .order('name_en')
-      .then(({ data }) => {
-        setSubcategories(data ?? []);
-        setLoading(false);
-      });
+      .order('name_en');
+    if (error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+    setSubcategories(data ?? []);
+    setLoading(false);
   }, [categoryId]);
+
+  useEffect(() => {
+    loadSubcategories();
+  }, [loadSubcategories]);
 
   return (
     <ThemedView style={styles.container}>
@@ -48,7 +58,17 @@ export default function SubcategoriesScreen() {
         </ThemedView>
 
         {loading && <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>}
-        {!loading && subcategories.length === 0 && (
+        {!loading && loadError && (
+          <ThemedView style={styles.header}>
+            <ThemedText style={styles.errorText}>{t('common.loadError')}</ThemedText>
+            <Pressable
+              onPress={loadSubcategories}
+              style={[styles.retryButton, { backgroundColor: theme.backgroundElement }]}>
+              <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
+            </Pressable>
+          </ThemedView>
+        )}
+        {!loading && !loadError && subcategories.length === 0 && (
           <ThemedText themeColor="textSecondary">{t('subcategories.empty')}</ThemedText>
         )}
 
@@ -93,6 +113,15 @@ const styles = StyleSheet.create({
   header: {
     gap: Spacing.one,
     paddingTop: Spacing.two,
+  },
+  errorText: {
+    color: '#D92D20',
+  },
+  retryButton: {
+    alignSelf: 'flex-start',
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
   },
   list: {
     flex: 1,

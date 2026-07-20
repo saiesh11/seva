@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { ProviderListingForm, ProviderListingValues } from '@/components/provide
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/auth-context';
 import { requestAndGetLocation } from '@/lib/location';
 import { supabase } from '@/lib/supabase';
@@ -22,48 +23,66 @@ type ExistingListing = {
 };
 
 export default function EditListingScreen() {
+  const theme = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const { session, refreshProviderDetails } = useAuth();
   const [existing, setExisting] = useState<ExistingListing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!session) return;
+
+    setLoading(true);
+    setLoadError(false);
+
+    const [detailsRes, location] = await Promise.all([
+      supabase
+        .from('provider_details')
+        .select('id, service_radius_km, years_experience, bio')
+        .eq('profile_id', session.user.id)
+        .maybeSingle(),
+      requestAndGetLocation(),
+    ]);
+
+    if (detailsRes.error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+
+    const details = detailsRes.data;
+    if (!details) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: services, error: servicesError } = await supabase
+      .from('provider_services')
+      .select('subcategory_id')
+      .eq('provider_id', details.id);
+
+    if (servicesError) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+
+    setExisting({
+      providerId: details.id,
+      subcategoryIds: (services ?? []).map((row) => row.subcategory_id),
+      radiusKm: details.service_radius_km ?? 10,
+      yearsExperience: details.years_experience,
+      bio: details.bio,
+      coords: location.granted ? location.coords : null,
+    });
+    setLoading(false);
+  }, [session]);
 
   useEffect(() => {
-    async function load() {
-      if (!session) return;
-
-      const [detailsRes, location] = await Promise.all([
-        supabase
-          .from('provider_details')
-          .select('id, service_radius_km, years_experience, bio')
-          .eq('profile_id', session.user.id)
-          .maybeSingle(),
-        requestAndGetLocation(),
-      ]);
-
-      const details = detailsRes.data;
-      if (!details) {
-        setLoading(false);
-        return;
-      }
-
-      const { data: services } = await supabase
-        .from('provider_services')
-        .select('subcategory_id')
-        .eq('provider_id', details.id);
-
-      setExisting({
-        providerId: details.id,
-        subcategoryIds: (services ?? []).map((row) => row.subcategory_id),
-        radiusKm: details.service_radius_km ?? 10,
-        yearsExperience: details.years_experience,
-        bio: details.bio,
-        coords: location.granted ? location.coords : null,
-      });
-      setLoading(false);
-    }
     load();
-  }, [session]);
+  }, [load]);
 
   async function handleSubmit(values: ProviderListingValues) {
     if (!existing) return t('providerSetup.genericError');
@@ -116,7 +135,18 @@ export default function EditListingScreen() {
 
             {loading && <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>}
 
-            {!loading && existing && (
+            {!loading && loadError && (
+              <ThemedView style={styles.header}>
+                <ThemedText style={styles.errorText}>{t('common.loadError')}</ThemedText>
+                <Pressable
+                  onPress={load}
+                  style={[styles.retryButton, { backgroundColor: theme.backgroundElement }]}>
+                  <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
+                </Pressable>
+              </ThemedView>
+            )}
+
+            {!loading && !loadError && existing && (
               <ProviderListingForm
                 initialSubcategoryIds={existing.subcategoryIds}
                 initialRadiusKm={existing.radiusKm}
@@ -152,5 +182,14 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: Spacing.one,
+  },
+  errorText: {
+    color: '#D92D20',
+  },
+  retryButton: {
+    alignSelf: 'flex-start',
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
   },
 });
