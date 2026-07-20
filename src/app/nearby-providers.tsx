@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useAuth } from '@/lib/auth-context';
 import { requestAndGetLocation } from '@/lib/location';
 import { supabase } from '@/lib/supabase';
 
@@ -26,6 +27,7 @@ export default function NearbyProvidersScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { t } = useTranslation();
+  const { profile } = useAuth();
   const { subcategoryId, subcategoryName } = useLocalSearchParams<{
     subcategoryId: string;
     subcategoryName: string;
@@ -42,21 +44,28 @@ export default function NearbyProvidersScreen() {
     setPermissionBlocked(false);
 
     try {
-      const location = await requestAndGetLocation();
-      if (!location.granted) {
-        if (!location.canAskAgain) {
-          setPermissionBlocked(true);
-          setError(t('nearbyProviders.locationPermissionBlocked'));
-        } else {
-          setError(t('nearbyProviders.locationPermissionDenied'));
+      let coords: { latitude: number; longitude: number };
+
+      if (profile?.search_location_lat != null && profile?.search_location_lng != null) {
+        coords = { latitude: profile.search_location_lat, longitude: profile.search_location_lng };
+      } else {
+        const location = await requestAndGetLocation();
+        if (!location.granted) {
+          if (!location.canAskAgain) {
+            setPermissionBlocked(true);
+            setError(t('nearbyProviders.locationPermissionBlocked'));
+          } else {
+            setError(t('nearbyProviders.locationPermissionDenied'));
+          }
+          return;
         }
-        return;
+        coords = location.coords;
       }
 
       const { data, error: rpcError } = await supabase.rpc('nearby_providers', {
         p_subcategory_id: subcategoryId,
-        p_lat: location.coords.latitude,
-        p_lng: location.coords.longitude,
+        p_lat: coords.latitude,
+        p_lng: coords.longitude,
       });
 
       if (rpcError) {
@@ -69,7 +78,7 @@ export default function NearbyProvidersScreen() {
     } finally {
       setLoading(false);
     }
-  }, [subcategoryId, t]);
+  }, [subcategoryId, t, profile]);
 
   useEffect(() => {
     search();

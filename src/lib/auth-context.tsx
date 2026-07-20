@@ -10,6 +10,9 @@ export type Profile = {
   role: 'customer' | 'provider' | 'both';
   preferred_language: 'en' | 'te' | 'hi';
   created_at: string;
+  search_location_lat: number | null;
+  search_location_lng: number | null;
+  search_location_label: string | null;
 };
 
 type AuthContextValue = {

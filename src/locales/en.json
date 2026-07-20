@@ -86,11 +86,32 @@
     "serviceRadius": "Service radius: {{radius}} km",
     "experience": "Experience: {{years}} yrs",
     "editListing": "Edit",
+    "myLocation": "My Location",
+    "myLocationAuto": "Using your current location automatically",
     "signOut": "Sign out"
   },
   "editListing": {
     "title": "Edit your listing",
     "save": "Save changes"
+  },
+  "locationSettings": {
+    "title": "My Location",
+    "explainer": "Choose the location used when you search for nearby providers.",
+    "currentLabel": "Currently: {{label}}",
+    "useCurrentLocation": "📍 Use my current location",
+    "gettingLocation": "Getting location…",
+    "searchPlaceholder": "Search for an area, address, or landmark…",
+    "search": "Search",
+    "searching": "Searching…",
+    "notFound": "Couldn't find that location. Try a different search.",
+    "confirmPrompt": "Use this location?",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "useAutomatic": "Use my current location automatically instead",
+    "locationPermissionDenied": "Location permission is needed to use your current location.",
+    "locationPermissionBlocked": "Location access is turned off for this app. Open Settings to enable it.",
+    "locationError": "Could not get your location. Try again.",
+    "saveError": "Could not save your location. Try again."
   },
   "roleLabels": {
     "customer": "customer",

@@ -100,6 +100,24 @@ export default function ProfileScreen() {
             </ThemedText>
           </ThemedView>
 
+          <ThemedView type="backgroundElement" style={styles.card}>
+            <ThemedView style={styles.cardHeader}>
+              <ThemedText type="smallBold">{t('profile.myLocation')}</ThemedText>
+              <Pressable
+                onPress={() => router.push('/location-settings')}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.editButton,
+                  { backgroundColor: theme.backgroundSelected, opacity: pressed ? 0.7 : 1 },
+                ]}>
+                <ThemedText type="small">📍 {t('profile.editListing')}</ThemedText>
+              </Pressable>
+            </ThemedView>
+            <ThemedText type="small" themeColor="textSecondary">
+              {profile?.search_location_label ?? t('profile.myLocationAuto')}
+            </ThemedText>
+          </ThemedView>
+
           {isProviderRole && (
             <ThemedView type="backgroundElement" style={styles.card}>
               <ThemedView style={styles.cardHeader}>

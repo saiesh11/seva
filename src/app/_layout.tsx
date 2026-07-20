@@ -87,6 +87,7 @@ function RootNavigator() {
         <Stack.Screen name="subcategories" />
         <Stack.Screen name="nearby-providers" />
         <Stack.Screen name="edit-listing" />
+        <Stack.Screen name="location-settings" />
       </Stack.Protected>
     </Stack>
   );
