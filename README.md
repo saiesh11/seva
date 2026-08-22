@@ -4,7 +4,7 @@ A local services marketplace app connecting customers with nearby service provid
 
 ## Download
 
-<!-- APK_LINK_PLACEHOLDER -->
+**[Seva v1.0.0 (.apk)](https://github.com/saiesh11/local-services-app/releases/download/v1.0.0/seva-v1.0.0.apk)** — Android only, internal-distribution build. Enable "install from unknown sources" and open the downloaded file. See the [release page](https://github.com/saiesh11/local-services-app/releases/tag/v1.0.0) for details.
 
 ## Features
 
