@@ -1,8 +1,14 @@
-# Welcome to your Expo app 👋
+# Seva
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A local services marketplace app connecting customers with nearby service providers (electricians, plumbers, carpenters, painters, and more). Built with Expo + Supabase.
 
-## Get started
+## Stack
+
+- **App**: Expo (SDK 57) + expo-router, React Native, TypeScript
+- **Backend**: Supabase — Postgres (with PostGIS for geospatial search) + Auth (phone OTP) + Storage (provider photos)
+- **i18n**: react-i18next — English, Telugu, and Hindi all shipped, driven by `profiles.preferred_language` (switchable in Profile)
+
+## Getting started
 
 1. Install dependencies
 
@@ -10,47 +16,50 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Create a `.env` file in the project root with your Supabase project's credentials:
+
+   ```bash
+   EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+   ```
+
+3. Set up the database — in the Supabase SQL Editor, run the files under `supabase/` **in this order**:
+
+   1. `schema.sql` — core tables + RLS
+   2. `add_search_location.sql` — pinned search location support
+   3. `add_provider_photo.sql` — provider listing photo column
+   4. `storage_provider_photos.sql` — storage bucket + policies for provider photos
+   5. `add_reviews.sql` — reviews/ratings table
+   6. `seed_categories.sql` — category/subcategory catalog
+   7. `translate_categories.sql` — Telugu/Hindi names for the seeded categories/subcategories
+   8. `nearby_providers.sql` — geospatial nearest-provider search function (also returns photo/rating aggregates)
+   9. `seed_dummy_providers.sql` — optional test data for local development
+
+   PostGIS must be enabled on the project (Database > Extensions), and a phone-based SMS provider (e.g. Twilio) must be configured under Authentication > Providers > Phone for OTP login to work.
+
+4. Start the app
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+   The nearby-providers map view (Android) needs a real Google Maps API key to actually render tiles — Expo Go's own shared dev key is unreliable in practice (shows a blank map with a "For development purposes only" watermark rather than real tiles). To get it working:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   1. In Google Cloud Console: create/select a project, **enable billing** (required even for free-tier usage — without it you get the watermarked blank map), enable "Maps SDK for Android", create an API key.
+   2. Put that key in `app.json` under the `react-native-maps` plugin config (`androidGoogleMapsApiKey`, currently empty).
+   3. Build a custom dev client (`eas build --profile development --platform android`) and install that instead of Expo Go — **Expo Go ignores this config entirely**, since it's a fixed pre-built shell that never reads your project's native settings. Editing `app.json` alone will not fix the blank map in Expo Go.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   iOS uses Apple Maps by default — no key needed there, works in Expo Go as-is.
 
-## Get a fresh project
+## Project structure
 
-When you're ready, run:
-
-```bash
-npm run reset-project
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+src/
+  app/            expo-router screens (file-based routing)
+  components/     shared UI components
+  constants/      theme, category icon map
+  hooks/          theme/color-scheme hooks
+  lib/            supabase client, auth context, i18n, location helpers
+  locales/        i18n translation files
+supabase/         SQL schema, migrations, and seed data (see Getting started above)
+```
