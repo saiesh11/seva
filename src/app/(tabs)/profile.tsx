@@ -1,28 +1,41 @@
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/auth-context';
+import { localizedName } from '@/lib/localized-name';
 import { supabase } from '@/lib/supabase';
 
+const AVATAR_GRADIENT = ['#3C9FFE', '#0274DF'] as const;
+
+const LANGUAGE_OPTIONS = [
+  { code: 'en', labelKey: 'language.english' },
+  { code: 'te', labelKey: 'language.telugu' },
+  { code: 'hi', labelKey: 'language.hindi' },
+] as const;
+
 type MyListing = {
+  photoUrl: string | null;
   bio: string | null;
   years_experience: number | null;
   service_radius_km: number | null;
-  services: string[];
+  services: { name_en: string; name_te: string | null; name_hi: string | null }[];
 };
 
 export default function ProfileScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { t } = useTranslation();
-  const { profile, hasProviderDetails } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { session, profile, hasProviderDetails, refreshProfile } = useAuth();
   const [listing, setListing] = useState<MyListing | null>(null);
   const [loadingListing, setLoadingListing] = useState(false);
   const [listingError, setListingError] = useState(false);
@@ -39,7 +52,7 @@ export default function ProfileScreen() {
 
     const { data: details, error: detailsError } = await supabase
       .from('provider_details')
-      .select('id, bio, years_experience, service_radius_km')
+      .select('id, photo_url, bio, years_experience, service_radius_km')
       .eq('profile_id', profile.id)
       .maybeSingle();
 
@@ -56,7 +69,7 @@ export default function ProfileScreen() {
 
     const { data: services, error: servicesError } = await supabase
       .from('provider_services')
-      .select('subcategories(name_en)')
+      .select('subcategories(name_en, name_te, name_hi)')
       .eq('provider_id', details.id);
 
     if (servicesError) {
@@ -66,12 +79,13 @@ export default function ProfileScreen() {
     }
 
     setListing({
+      photoUrl: details.photo_url,
       bio: details.bio,
       years_experience: details.years_experience,
       service_radius_km: details.service_radius_km,
       services: (services ?? [])
-        .map((row: any) => row.subcategories?.name_en)
-        .filter((name: string | undefined): name is string => Boolean(name)),
+        .map((row: any) => row.subcategories)
+        .filter(Boolean),
     });
     setLoadingListing(false);
   }, [isProviderRole, hasProviderDetails, profile]);
@@ -82,26 +96,68 @@ export default function ProfileScreen() {
     }, [loadListing])
   );
 
+  async function handleLanguageChange(code: 'en' | 'te' | 'hi') {
+    if (!session || i18n.language === code) return;
+    i18n.changeLanguage(code);
+    await supabase.from('profiles').update({ preferred_language: code }).eq('id', session.user.id);
+    await refreshProfile();
+  }
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <ThemedText type="subtitle">{t('profile.title')}</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.eyebrow}>
+            {t('profile.title')}
+          </ThemedText>
 
-          <ThemedView type="backgroundElement" style={styles.card}>
-            <ThemedText type="smallBold">{profile?.full_name}</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {profile?.phone}
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('profile.accountType', {
-                role: profile?.role ? t(`roleLabels.${profile.role}`) : '',
-              })}
-            </ThemedText>
+          <ThemedView type="backgroundElement" style={[styles.card, styles.identityCard]}>
+            {listing?.photoUrl ? (
+              <Image source={{ uri: listing.photoUrl }} style={styles.avatar} contentFit="cover" />
+            ) : (
+              <LinearGradient colors={AVATAR_GRADIENT} style={[styles.avatar, styles.avatarGradientFill]}>
+                <ThemedText style={styles.avatarInitial}>
+                  {(profile?.full_name?.trim().charAt(0) ?? '?').toUpperCase()}
+                </ThemedText>
+              </LinearGradient>
+            )}
+            <View style={styles.identityInfo}>
+              <ThemedText type="subtitle" style={styles.nameText} numberOfLines={1}>
+                {profile?.full_name}
+              </ThemedText>
+              <ThemedText themeColor="textSecondary">{profile?.phone}</ThemedText>
+              <View style={styles.roleBadge}>
+                <ThemedText type="small" style={styles.roleBadgeText}>
+                  {profile?.role ? t(`roleLabels.${profile.role}`) : ''}
+                </ThemedText>
+              </View>
+            </View>
           </ThemedView>
 
-          <ThemedView type="backgroundElement" style={styles.card}>
-            <ThemedView style={styles.cardHeader}>
+          <ThemedView type="backgroundElement" style={[styles.card, styles.cardShadow]}>
+            <ThemedText type="smallBold">{t('language.title')}</ThemedText>
+            <View style={styles.languageRow}>
+              {LANGUAGE_OPTIONS.map((option) => {
+                const selected = i18n.language === option.code;
+                return (
+                  <Pressable
+                    key={option.code}
+                    onPress={() => handleLanguageChange(option.code)}
+                    style={[
+                      styles.languageChip,
+                      { backgroundColor: selected ? theme.text : theme.backgroundSelected },
+                    ]}>
+                    <ThemedText type="small" style={{ color: selected ? theme.background : theme.text }}>
+                      {t(option.labelKey)}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </ThemedView>
+
+          <ThemedView type="backgroundElement" style={[styles.card, styles.cardShadow]}>
+            <View style={styles.cardHeader}>
               <ThemedText type="smallBold">{t('profile.myLocation')}</ThemedText>
               <Pressable
                 onPress={() => router.push('/location-settings')}
@@ -112,15 +168,15 @@ export default function ProfileScreen() {
                 ]}>
                 <ThemedText type="small">📍 {t('profile.editListing')}</ThemedText>
               </Pressable>
-            </ThemedView>
+            </View>
             <ThemedText type="small" themeColor="textSecondary">
               {profile?.search_location_label ?? t('profile.myLocationAuto')}
             </ThemedText>
           </ThemedView>
 
           {isProviderRole && (
-            <ThemedView type="backgroundElement" style={styles.card}>
-              <ThemedView style={styles.cardHeader}>
+            <ThemedView type="backgroundElement" style={[styles.card, styles.cardShadow]}>
+              <View style={styles.cardHeader}>
                 <ThemedText type="smallBold">{t('profile.yourListing')}</ThemedText>
                 <Pressable
                   onPress={() => router.push('/edit-listing')}
@@ -131,25 +187,23 @@ export default function ProfileScreen() {
                   ]}>
                   <ThemedText type="small">⚙️ {t('profile.editListing')}</ThemedText>
                 </Pressable>
-              </ThemedView>
+              </View>
               {loadingListing && (
                 <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>
               )}
               {!loadingListing && listingError && (
-                <ThemedView style={styles.cardHeader}>
+                <View style={styles.cardHeader}>
                   <ThemedText style={styles.errorText}>{t('common.loadError')}</ThemedText>
-                  <Pressable
-                    onPress={loadListing}
-                    style={[styles.editButton, { backgroundColor: theme.backgroundSelected }]}>
-                    <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
-                  </Pressable>
-                </ThemedView>
+                  <Button label={t('common.tryAgain')} variant="secondary" onPress={loadListing} />
+                </View>
               )}
               {!loadingListing && !listingError && listing && (
                 <>
                   <ThemedText type="small" themeColor="textSecondary">
                     {t('profile.services', {
-                      services: listing.services.join(', ') || t('profile.noServicesYet'),
+                      services:
+                        listing.services.map((s) => localizedName(s, i18n.language)).join(', ') ||
+                        t('profile.noServicesYet'),
                     })}
                   </ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">
@@ -170,11 +224,11 @@ export default function ProfileScreen() {
             </ThemedView>
           )}
 
-          <Pressable
+          <Button
+            label={t('profile.signOut')}
+            variant="destructive"
             onPress={() => supabase.auth.signOut()}
-            style={[styles.signOutButton, { backgroundColor: theme.backgroundElement }]}>
-            <ThemedText type="smallBold">{t('profile.signOut')}</ThemedText>
-          </Pressable>
+          />
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -202,6 +256,73 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     gap: Spacing.one,
   },
+  cardShadow: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  eyebrow: {
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  identityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  avatarGradientFill: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '700',
+  },
+  identityInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  nameText: {
+    fontSize: 20,
+    lineHeight: 26,
+    fontWeight: '700',
+  },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 2,
+    borderRadius: Spacing.four,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: 3,
+    backgroundColor: 'rgba(60, 159, 254, 0.16)',
+  },
+  roleBadgeText: {
+    color: '#0274DF',
+    textTransform: 'capitalize',
+  },
+  languageRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  languageChip: {
+    borderRadius: Spacing.four,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
   errorText: {
     color: '#D92D20',
   },
@@ -214,10 +335,5 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.four,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.one,
-  },
-  signOutButton: {
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
-    alignItems: 'center',
   },
 });

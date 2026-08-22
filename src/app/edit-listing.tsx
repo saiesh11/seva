@@ -20,6 +20,7 @@ type ExistingListing = {
   yearsExperience: number | null;
   bio: string | null;
   coords: { latitude: number; longitude: number } | null;
+  photoUrl: string | null;
 };
 
 export default function EditListingScreen() {
@@ -40,7 +41,7 @@ export default function EditListingScreen() {
     const [detailsRes, location] = await Promise.all([
       supabase
         .from('provider_details')
-        .select('id, service_radius_km, years_experience, bio')
+        .select('id, service_radius_km, years_experience, bio, photo_url')
         .eq('profile_id', session.user.id)
         .maybeSingle(),
       requestAndGetLocation(),
@@ -76,6 +77,7 @@ export default function EditListingScreen() {
       yearsExperience: details.years_experience,
       bio: details.bio,
       coords: location.granted ? location.coords : null,
+      photoUrl: details.photo_url,
     });
     setLoading(false);
   }, [session]);
@@ -94,6 +96,7 @@ export default function EditListingScreen() {
         service_radius_km: values.radiusKm,
         years_experience: values.yearsExperience,
         bio: values.bio,
+        photo_url: values.photoUrl,
       })
       .eq('id', existing.providerId);
 
@@ -153,6 +156,7 @@ export default function EditListingScreen() {
                 initialYearsExperience={existing.yearsExperience}
                 initialBio={existing.bio}
                 initialCoords={existing.coords}
+                initialPhotoUrl={existing.photoUrl}
                 submitLabel={t('editListing.save')}
                 savingLabel={t('providerSetup.saving')}
                 onSubmit={handleSubmit}

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
@@ -70,22 +71,20 @@ export default function VerifyScreen() {
               keyboardType="number-pad"
               textContentType="oneTimeCode"
               autoFocus
-              style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+              style={[
+                styles.input,
+                styles.inputShadow,
+                { color: theme.text, backgroundColor: theme.backgroundElement },
+              ]}
             />
 
             {error && <ThemedText style={styles.error}>{error}</ThemedText>}
 
-            <Pressable
+            <Button
+              label={loading ? t('verify.verifying') : t('verify.verify')}
+              loading={loading}
               onPress={handleVerify}
-              disabled={loading}
-              style={({ pressed }) => [
-                styles.button,
-                { backgroundColor: theme.text, opacity: pressed || loading ? 0.7 : 1 },
-              ]}>
-              <ThemedText style={{ color: theme.background }} type="smallBold">
-                {loading ? t('verify.verifying') : t('verify.verify')}
-              </ThemedText>
-            </Pressable>
+            />
 
             <Pressable onPress={handleResend} disabled={resending}>
               <ThemedText type="link" themeColor="textSecondary">
@@ -127,12 +126,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 4,
   },
+  inputShadow: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
   error: {
     color: '#D92D20',
-  },
-  button: {
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
-    alignItems: 'center',
   },
 });

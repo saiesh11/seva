@@ -1,26 +1,34 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
+import { FlatList, Platform, Pressable, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getCategoryIcon } from '@/constants/category-icons';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/auth-context';
+import { localizedName } from '@/lib/localized-name';
 import { supabase } from '@/lib/supabase';
 
-type Category = { id: string; name_en: string };
-type Subcategory = { id: string; category_id: string; name_en: string };
+type Category = { id: string; name_en: string; name_te: string | null; name_hi: string | null };
+type Subcategory = {
+  id: string;
+  category_id: string;
+  name_en: string;
+  name_te: string | null;
+  name_hi: string | null;
+};
 
 const GRID_COLUMNS = 3;
 
 export default function HomeScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const { width: windowWidth } = useWindowDimensions();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -36,8 +44,8 @@ export default function HomeScreen() {
     setLoading(true);
     setLoadError(false);
     const [categoriesRes, subcategoriesRes] = await Promise.all([
-      supabase.from('categories').select('id, name_en').order('name_en'),
-      supabase.from('subcategories').select('id, category_id, name_en'),
+      supabase.from('categories').select('id, name_en, name_te, name_hi').order('name_en'),
+      supabase.from('subcategories').select('id, category_id, name_en, name_te, name_hi'),
     ]);
     if (categoriesRes.error || subcategoriesRes.error) {
       setLoadError(true);
@@ -57,12 +65,17 @@ export default function HomeScreen() {
     const trimmed = query.trim().toLowerCase();
     if (!trimmed) return categories;
 
+    const matchesQuery = (item: { name_en: string; name_te: string | null; name_hi: string | null }) =>
+      [item.name_en, item.name_te, item.name_hi].some((name) =>
+        name?.toLowerCase().includes(trimmed)
+      );
+
     const matchingCategoryIds = new Set(
-      subcategories.filter((sub) => sub.name_en.toLowerCase().includes(trimmed)).map((sub) => sub.category_id)
+      subcategories.filter(matchesQuery).map((sub) => sub.category_id)
     );
 
     return categories.filter(
-      (category) => category.name_en.toLowerCase().includes(trimmed) || matchingCategoryIds.has(category.id)
+      (category) => matchesQuery(category) || matchingCategoryIds.has(category.id)
     );
   }, [categories, subcategories, query]);
 
@@ -76,23 +89,22 @@ export default function HomeScreen() {
           </ThemedText>
         </ThemedView>
 
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t('home.searchPlaceholder')}
-          placeholderTextColor={theme.textSecondary}
-          style={[styles.searchInput, { color: theme.text, backgroundColor: theme.backgroundElement }]}
-        />
+        <ThemedView style={[styles.searchRow, styles.searchShadow, { backgroundColor: theme.backgroundElement }]}>
+          <ThemedText style={styles.searchIcon}>🔍</ThemedText>
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('home.searchPlaceholder')}
+            placeholderTextColor={theme.textSecondary}
+            style={[styles.searchInput, { color: theme.text }]}
+          />
+        </ThemedView>
 
         {loading && <ThemedText themeColor="textSecondary">{t('common.loading')}</ThemedText>}
         {!loading && loadError && (
           <ThemedView style={styles.header}>
             <ThemedText style={styles.errorText}>{t('common.loadError')}</ThemedText>
-            <Pressable
-              onPress={loadCategories}
-              style={[styles.retryButton, { backgroundColor: theme.backgroundElement }]}>
-              <ThemedText type="small">{t('common.tryAgain')}</ThemedText>
-            </Pressable>
+            <Button label={t('common.tryAgain')} variant="secondary" onPress={loadCategories} style={styles.retryButton} />
           </ThemedView>
         )}
         {!loading && !loadError && categories.length === 0 && (
@@ -114,11 +126,12 @@ export default function HomeScreen() {
               onPress={() =>
                 router.push({
                   pathname: '/subcategories',
-                  params: { categoryId: item.id, categoryName: item.name_en },
+                  params: { categoryId: item.id, categoryName: localizedName(item, i18n.language) },
                 })
               }
               style={({ pressed }) => [
                 styles.tile,
+                styles.tileShadow,
                 {
                   width: tileSize,
                   height: tileSize,
@@ -132,7 +145,7 @@ export default function HomeScreen() {
                 style={styles.tileLabel}
                 numberOfLines={2}
                 ellipsizeMode="tail">
-                {item.name_en}
+                {localizedName(item, i18n.language)}
               </ThemedText>
             </Pressable>
           )}
@@ -163,13 +176,32 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     alignSelf: 'flex-start',
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
   },
-  searchInput: {
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
     borderRadius: Spacing.four,
     paddingHorizontal: Spacing.four,
+  },
+  searchShadow: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  searchIcon: {
+    fontSize: 16,
+  },
+  searchInput: {
+    flex: 1,
     paddingVertical: Spacing.three,
     fontSize: 16,
   },
@@ -190,6 +222,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.one,
     paddingHorizontal: Spacing.one,
+  },
+  tileShadow: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   tileIcon: {
     fontSize: 32,

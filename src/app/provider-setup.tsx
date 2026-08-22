@@ -24,6 +24,7 @@ export default function ProviderSetupScreen() {
         service_radius_km: values.radiusKm,
         years_experience: values.yearsExperience,
         bio: values.bio,
+        photo_url: values.photoUrl,
       })
       .select('id')
       .single();

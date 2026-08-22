@@ -1,9 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
@@ -51,7 +52,7 @@ export default function PhoneScreen() {
 
             <ThemedView
               type="backgroundElement"
-              style={styles.inputRow}>
+              style={[styles.inputRow, styles.inputShadow]}>
               <ThemedText type="default" themeColor="textSecondary" style={styles.prefix}>
                 +91
               </ThemedText>
@@ -74,17 +75,11 @@ export default function PhoneScreen() {
               </ThemedText>
             )}
 
-            <Pressable
+            <Button
+              label={loading ? t('phone.sending') : t('phone.sendCode')}
+              loading={loading}
               onPress={handleSendCode}
-              disabled={loading}
-              style={({ pressed }) => [
-                styles.button,
-                { backgroundColor: theme.text, opacity: pressed || loading ? 0.7 : 1 },
-              ]}>
-              <ThemedText style={{ color: theme.background }} type="smallBold">
-                {loading ? t('phone.sending') : t('phone.sendCode')}
-              </ThemedText>
-            </Pressable>
+            />
           </ThemedView>
         </SafeAreaView>
       </ThemedView>
@@ -113,6 +108,19 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.two,
     paddingLeft: Spacing.three,
   },
+  inputShadow: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
   prefix: {
     fontSize: 16,
   },
@@ -124,10 +132,5 @@ const styles = StyleSheet.create({
   },
   error: {
     color: '#D92D20',
-  },
-  button: {
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
-    alignItems: 'center',
   },
 });

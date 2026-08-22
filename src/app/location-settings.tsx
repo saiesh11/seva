@@ -2,9 +2,10 @@ import * as ExpoLinking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
@@ -118,7 +119,7 @@ export default function LocationSettingsScreen() {
               <ThemedText themeColor="textSecondary">{t('locationSettings.explainer')}</ThemedText>
             </ThemedView>
 
-            <ThemedView type="backgroundElement" style={styles.card}>
+            <ThemedView type="backgroundElement" style={[styles.card, styles.cardShadow]}>
               <ThemedText type="small" themeColor="textSecondary">
                 {hasSavedLocation
                   ? t('locationSettings.currentLabel', { label: profile?.search_location_label })
@@ -126,14 +127,13 @@ export default function LocationSettingsScreen() {
               </ThemedText>
             </ThemedView>
 
-            <Pressable
-              onPress={handleUseCurrentLocation}
+            <Button
+              variant="secondary"
               disabled={locating || saving}
-              style={[styles.secondaryButton, { backgroundColor: theme.backgroundElement }]}>
-              <ThemedText type="small">
-                {locating ? t('locationSettings.gettingLocation') : t('locationSettings.useCurrentLocation')}
-              </ThemedText>
-            </Pressable>
+              loading={locating}
+              onPress={handleUseCurrentLocation}
+              label={locating ? t('locationSettings.gettingLocation') : t('locationSettings.useCurrentLocation')}
+            />
 
             <ThemedView style={styles.section}>
               <TextInput
@@ -143,35 +143,31 @@ export default function LocationSettingsScreen() {
                 placeholderTextColor={theme.textSecondary}
                 style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
               />
-              <Pressable
-                onPress={handleSearch}
+              <Button
+                variant="secondary"
                 disabled={searching || saving}
-                style={[styles.secondaryButton, { backgroundColor: theme.backgroundElement }]}>
-                <ThemedText type="small">
-                  {searching ? t('locationSettings.searching') : t('locationSettings.search')}
-                </ThemedText>
-              </Pressable>
+                loading={searching}
+                onPress={handleSearch}
+                label={searching ? t('locationSettings.searching') : t('locationSettings.search')}
+              />
             </ThemedView>
 
             {pendingResult && (
-              <ThemedView type="backgroundElement" style={styles.card}>
+              <ThemedView type="backgroundElement" style={[styles.card, styles.cardShadow]}>
                 <ThemedText type="small">{t('locationSettings.confirmPrompt')}</ThemedText>
                 <ThemedText type="smallBold">{pendingResult.label}</ThemedText>
-                <ThemedView style={styles.confirmRow}>
-                  <Pressable
+                <View style={styles.confirmRow}>
+                  <Button
+                    label={t('locationSettings.confirm')}
+                    loading={saving}
                     onPress={() => saveLocation(pendingResult.coords, pendingResult.label)}
-                    disabled={saving}
-                    style={[styles.confirmButton, { backgroundColor: theme.text }]}>
-                    <ThemedText type="smallBold" style={{ color: theme.background }}>
-                      {t('locationSettings.confirm')}
-                    </ThemedText>
-                  </Pressable>
+                  />
                   <Pressable onPress={() => setPendingResult(null)} style={styles.cancelButton}>
                     <ThemedText type="small" themeColor="textSecondary">
                       {t('locationSettings.cancel')}
                     </ThemedText>
                   </Pressable>
-                </ThemedView>
+                </View>
               </ThemedView>
             )}
 
@@ -179,11 +175,11 @@ export default function LocationSettingsScreen() {
               <ThemedView style={styles.section}>
                 <ThemedText style={styles.errorText}>{error}</ThemedText>
                 {permissionBlocked && (
-                  <Pressable
+                  <Button
+                    variant="secondary"
+                    label={t('common.openSettings')}
                     onPress={() => ExpoLinking.openSettings()}
-                    style={[styles.secondaryButton, { backgroundColor: theme.backgroundElement }]}>
-                    <ThemedText type="small">{t('common.openSettings')}</ThemedText>
-                  </Pressable>
+                  />
                 )}
               </ThemedView>
             )}
@@ -228,11 +224,18 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     gap: Spacing.one,
   },
-  secondaryButton: {
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
-    alignItems: 'center',
+  cardShadow: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   input: {
     borderRadius: Spacing.two,
@@ -245,11 +248,6 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     alignItems: 'center',
     marginTop: Spacing.one,
-  },
-  confirmButton: {
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
   },
   cancelButton: {
     paddingHorizontal: Spacing.two,

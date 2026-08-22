@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
@@ -97,17 +98,11 @@ export default function RoleScreen() {
 
             {error && <ThemedText style={styles.error}>{error}</ThemedText>}
 
-            <Pressable
+            <Button
+              label={loading ? t('role.saving') : t('role.continue')}
+              loading={loading}
               onPress={handleContinue}
-              disabled={loading}
-              style={({ pressed }) => [
-                styles.button,
-                { backgroundColor: theme.text, opacity: pressed || loading ? 0.7 : 1 },
-              ]}>
-              <ThemedText style={{ color: theme.background }} type="smallBold">
-                {loading ? t('role.saving') : t('role.continue')}
-              </ThemedText>
-            </Pressable>
+            />
           </ThemedView>
         </SafeAreaView>
       </ThemedView>
@@ -146,10 +141,5 @@ const styles = StyleSheet.create({
   },
   error: {
     color: '#D92D20',
-  },
-  button: {
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
-    alignItems: 'center',
   },
 });
