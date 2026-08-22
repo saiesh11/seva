@@ -12,20 +12,10 @@ A local services marketplace app connecting customers with nearby service provid
 - **Customer browse & search** — category grid with live search, geospatial "nearby providers" results (PostGIS `ST_DWithin`/`ST_Distance`), sorted nearest-first
 - **Provider onboarding** — service categories, service radius, years of experience, bio, and a profile photo (Supabase Storage)
 - **Reviews & ratings** — one review per customer per provider, average rating + count shown on every listing, a "Verified" badge for admin-verified providers
-- **Map view** — toggle between list and map for nearby-provider results, with pins for each provider plus the customer's own location (native only, see [Known limitations](#known-limitations))
+- **Map view** — toggle between list and map for nearby-provider results, with pins for each provider plus the customer's own location
 - **Pinned search location** — search from a chosen address instead of always relying on live GPS
 - **Multi-language** — English, Telugu (తెలుగు), and Hindi (हिन्दी), switchable per-user in Profile; category names localize along with the UI
 - **Consistent design system** — a shared `Button` component (gradient primary CTA, press animation, haptics) used everywhere, subtle depth/shadows across every card and surface
-
-## Known limitations
-
-Being upfront about what's *not* done, rather than letting it surface as a surprise later:
-
-- **Map view needs your own Google Maps API key + a custom dev client to actually render tiles.** Expo Go's shared dev key is unreliable (renders a blank map with a "For development purposes only" watermark). See [Getting started](#getting-started) below for the exact steps — this isn't a code bug, it's a one-time Google Cloud + build setup task.
-- **Telugu/Hindi translations are AI-generated, not native-speaker-reviewed.** Grammatically correct as far as I can verify, but worth a native speaker's skim before this ships to real users.
-- **No booking/request flow yet** — contact is call-only (`tel:` link). No in-app request/accept flow, no chat.
-- **No payments, push notifications, or admin/moderation tooling.** `provider_details.is_verified` exists in the schema and is shown in the UI as a badge, but nothing currently sets it — it needs to be flipped manually (e.g. via the Supabase dashboard) until an admin flow exists.
-- **No automated tests or CI.**
 
 ## Stack
 
