@@ -1,4 +1,8 @@
 {
+  "tabs": {
+    "home": "Home",
+    "profile": "Profile"
+  },
   "common": {
     "loading": "Loading…",
     "back": "‹ Back",
@@ -36,6 +40,12 @@
   },
   "providerSetup": {
     "title": "Set up your provider profile",
+    "photoLabel": "Profile photo",
+    "addPhoto": "Add photo",
+    "changePhoto": "Change photo",
+    "uploadingPhoto": "Uploading photo…",
+    "photoPermissionDenied": "Photo library access is needed to add a photo.",
+    "photoUploadError": "Could not upload the photo. Try again.",
     "servicesQuestion": "What services do you offer?",
     "locationHeading": "Your service location",
     "gettingLocation": "Getting location…",
@@ -75,7 +85,22 @@
     "empty": "No providers found nearby for this yet.",
     "distanceAway": "{{distance}} km away",
     "yearsExperience": "{{years}} yrs experience",
-    "call": "Call"
+    "call": "Call",
+    "verified": "Verified",
+    "noRatingsYet": "No ratings yet",
+    "ratingCount": "({{count}})",
+    "rate": "Rate",
+    "cancel": "Cancel",
+    "listView": "List",
+    "mapView": "Map",
+    "yourLocation": "Your location"
+  },
+  "reviews": {
+    "ratingLabel": "Your rating",
+    "commentPlaceholder": "Add a comment (optional)",
+    "submit": "Submit review",
+    "submitting": "Submitting…",
+    "error": "Could not submit your review. Try again."
   },
   "profile": {
     "title": "Profile",
@@ -117,5 +142,11 @@
     "customer": "customer",
     "provider": "provider",
     "both": "both"
+  },
+  "language": {
+    "title": "Language",
+    "english": "English",
+    "telugu": "తెలుగు",
+    "hindi": "हिन्दी"
   }
 }

@@ -1,0 +1,152 @@
+{
+  "tabs": {
+    "home": "होम",
+    "profile": "प्रोफ़ाइल"
+  },
+  "common": {
+    "loading": "लोड हो रहा है…",
+    "back": "‹ वापस",
+    "tryAgain": "फिर से कोशिश करें",
+    "openSettings": "सेटिंग्स खोलें",
+    "loadError": "यह लोड नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।"
+  },
+  "phone": {
+    "title": "अपना फ़ोन नंबर दर्ज करें",
+    "subtitle": "यह पुष्टि करने के लिए कि यह आप हैं, हम आपको एक कोड भेजेंगे।",
+    "invalidNumber": "10-अंकों का फ़ोन नंबर दर्ज करें",
+    "sendCode": "कोड भेजें",
+    "sending": "भेजा जा रहा है…"
+  },
+  "verify": {
+    "title": "कोड दर्ज करें",
+    "sentTo": "{{phone}} पर भेजा गया",
+    "invalidCode": "आपको प्राप्त कोड दर्ज करें",
+    "verify": "सत्यापित करें",
+    "verifying": "सत्यापित हो रहा है…",
+    "resend": "कोड नहीं मिला? फिर से भेजें",
+    "resending": "फिर से भेजा जा रहा है…",
+    "changeNumber": "फ़ोन नंबर बदलें"
+  },
+  "role": {
+    "title": "कुछ जानकारी",
+    "namePlaceholder": "आपका नाम",
+    "customer": "मुझे सेवाएं चाहिए",
+    "provider": "मैं सेवाएं प्रदान करता हूं",
+    "both": "दोनों",
+    "nameRequired": "अपना नाम दर्ज करें",
+    "roleRequired": "जारी रखने के लिए एक चुनें",
+    "continue": "जारी रखें",
+    "saving": "सेव हो रहा है…"
+  },
+  "providerSetup": {
+    "title": "अपनी प्रोवाइडर प्रोफ़ाइल सेट करें",
+    "photoLabel": "प्रोफ़ाइल फ़ोटो",
+    "addPhoto": "फ़ोटो जोड़ें",
+    "changePhoto": "फ़ोटो बदलें",
+    "uploadingPhoto": "फ़ोटो अपलोड हो रही है…",
+    "photoPermissionDenied": "फ़ोटो जोड़ने के लिए फ़ोटो लाइब्रेरी की अनुमति चाहिए।",
+    "photoUploadError": "फ़ोटो अपलोड नहीं हो सकी। फिर से कोशिश करें।",
+    "servicesQuestion": "आप कौन सी सेवाएं देते हैं?",
+    "locationHeading": "आपका सेवा क्षेत्र",
+    "gettingLocation": "लोकेशन प्राप्त हो रही है…",
+    "locationCaptured": "लोकेशन दर्ज हो गई ✓ (अपडेट करने के लिए टैप करें)",
+    "useCurrentLocation": "मेरी वर्तमान लोकेशन का उपयोग करें",
+    "serviceRadius": "सेवा त्रिज्या",
+    "kmSuffix": "{{km}} किमी",
+    "yearsExperienceLabel": "अनुभव के वर्ष (वैकल्पिक)",
+    "yearsExperiencePlaceholder": "उदा. 5",
+    "bioLabel": "संक्षिप्त परिचय (वैकल्पिक)",
+    "bioPlaceholder": "ग्राहकों को अपने काम के बारे में थोड़ा बताएं",
+    "servicesRequired": "आप जो सेवा देते हैं उनमें से कम से कम एक चुनें",
+    "locationRequired": "ग्राहकों को आपको आस-पास खोजने के लिए अपनी लोकेशन सेट करें",
+    "locationPermissionDenied": "ग्राहकों को आपको आस-पास खोजने के लिए लोकेशन अनुमति चाहिए।",
+    "locationPermissionBlocked": "इस ऐप के लिए लोकेशन एक्सेस बंद है। इसे चालू करने के लिए सेटिंग्स खोलें।",
+    "locationError": "आपकी लोकेशन प्राप्त नहीं हो सकी। फिर से कोशिश करें।",
+    "genericError": "कुछ गलत हो गया। फिर से कोशिश करें।",
+    "finish": "सेटअप पूरा करें",
+    "saving": "सेव हो रहा है…"
+  },
+  "home": {
+    "title": "आपको क्या चाहिए?",
+    "greeting": "नमस्ते {{name}}, आस-पास के प्रोवाइडर खोजने के लिए एक श्रेणी चुनें।",
+    "noCategories": "अभी तक कोई श्रेणी नहीं है।",
+    "searchPlaceholder": "किसी सेवा के लिए खोजें…",
+    "noResults": "\"{{query}}\" के लिए कोई परिणाम नहीं"
+  },
+  "subcategories": {
+    "empty": "इस श्रेणी में अभी तक कोई सेवा सूचीबद्ध नहीं है।"
+  },
+  "nearbyProviders": {
+    "fallbackName": "प्रोवाइडर",
+    "searching": "आपके आस-पास प्रोवाइडर खोजे जा रहे हैं…",
+    "locationPermissionDenied": "आपके आस-पास प्रोवाइडर खोजने के लिए लोकेशन अनुमति चाहिए।",
+    "locationPermissionBlocked": "इस ऐप के लिए लोकेशन एक्सेस बंद है। इसे चालू करने के लिए सेटिंग्स खोलें।",
+    "locationError": "आपकी लोकेशन प्राप्त नहीं हो सकी। फिर से कोशिश करें।",
+    "empty": "इसके लिए आस-पास कोई प्रोवाइडर नहीं मिला।",
+    "distanceAway": "{{distance}} किमी दूर",
+    "yearsExperience": "{{years}} साल का अनुभव",
+    "call": "कॉल करें",
+    "verified": "सत्यापित",
+    "noRatingsYet": "अभी तक कोई रेटिंग नहीं",
+    "ratingCount": "({{count}})",
+    "rate": "रेट करें",
+    "cancel": "रद्द करें",
+    "listView": "सूची",
+    "mapView": "मैप",
+    "yourLocation": "आपकी लोकेशन"
+  },
+  "reviews": {
+    "ratingLabel": "आपकी रेटिंग",
+    "commentPlaceholder": "टिप्पणी जोड़ें (वैकल्पिक)",
+    "submit": "रिव्यू सबमिट करें",
+    "submitting": "सबमिट हो रहा है…",
+    "error": "आपका रिव्यू सबमिट नहीं हो सका। फिर से कोशिश करें।"
+  },
+  "profile": {
+    "title": "प्रोफ़ाइल",
+    "accountType": "खाता प्रकार: {{role}}",
+    "yourListing": "आपकी लिस्टिंग",
+    "services": "सेवाएं: {{services}}",
+    "noServicesYet": "अभी तक कोई नहीं",
+    "serviceRadius": "सेवा त्रिज्या: {{radius}} किमी",
+    "experience": "अनुभव: {{years}} साल",
+    "editListing": "एडिट",
+    "myLocation": "मेरी लोकेशन",
+    "myLocationAuto": "आपकी वर्तमान लोकेशन का स्वचालित रूप से उपयोग किया जा रहा है",
+    "signOut": "साइन आउट"
+  },
+  "editListing": {
+    "title": "अपनी लिस्टिंग एडिट करें",
+    "save": "बदलाव सेव करें"
+  },
+  "locationSettings": {
+    "title": "मेरी लोकेशन",
+    "explainer": "आस-पास के प्रोवाइडर खोजते समय उपयोग होने वाली लोकेशन चुनें।",
+    "currentLabel": "वर्तमान: {{label}}",
+    "useCurrentLocation": "📍 मेरी वर्तमान लोकेशन का उपयोग करें",
+    "gettingLocation": "लोकेशन प्राप्त हो रही है…",
+    "searchPlaceholder": "किसी क्षेत्र, पते या लैंडमार्क के लिए खोजें…",
+    "search": "खोजें",
+    "searching": "खोजा जा रहा है…",
+    "notFound": "वह लोकेशन नहीं मिली। कोई और खोज करें।",
+    "confirmPrompt": "यह लोकेशन उपयोग करें?",
+    "confirm": "पुष्टि करें",
+    "cancel": "रद्द करें",
+    "useAutomatic": "इसके बजाय मेरी वर्तमान लोकेशन का स्वचालित रूप से उपयोग करें",
+    "locationPermissionDenied": "अपनी वर्तमान लोकेशन का उपयोग करने के लिए लोकेशन अनुमति चाहिए।",
+    "locationPermissionBlocked": "इस ऐप के लिए लोकेशन एक्सेस बंद है। इसे चालू करने के लिए सेटिंग्स खोलें।",
+    "locationError": "आपकी लोकेशन प्राप्त नहीं हो सकी। फिर से कोशिश करें।",
+    "saveError": "आपकी लोकेशन सेव नहीं हो सकी। फिर से कोशिश करें।"
+  },
+  "roleLabels": {
+    "customer": "ग्राहक",
+    "provider": "प्रोवाइडर",
+    "both": "दोनों"
+  },
+  "language": {
+    "title": "भाषा",
+    "english": "English",
+    "telugu": "తెలుగు",
+    "hindi": "हिन्दी"
+  }
+}

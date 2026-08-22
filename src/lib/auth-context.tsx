@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useState } from 'react';
 
+import i18next from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 
 export type Profile = {
@@ -63,6 +64,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
       setProfileError(false);
       setProfile(data);
+
+      if (data && i18next.language !== data.preferred_language) {
+        i18next.changeLanguage(data.preferred_language);
+      }
 
       if (data && (data.role === 'provider' || data.role === 'both')) {
         await loadProviderDetails(userId);
