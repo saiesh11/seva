@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "App",
+    "name": "Seva",
     "slug": "App",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -25,7 +25,7 @@
       "package": "com.saiesh11.localservices"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -44,7 +44,13 @@
           "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to find services near you."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": ""
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
