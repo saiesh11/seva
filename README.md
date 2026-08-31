@@ -24,6 +24,134 @@ A local services marketplace app connecting customers with nearby service provid
 - **Maps**: react-native-maps (works in Expo Go on iOS via Apple Maps out of the box; Android needs your own Google Maps key, see below)
 - **i18n**: react-i18next — English, Telugu, and Hindi all shipped, driven by `profiles.preferred_language` (switchable in Profile)
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph Client["Expo App — iOS / Android / Web"]
+        UI["expo-router screens<br/>(src/app)"]
+        Lib["src/lib<br/>supabase client · auth-context · i18n · location"]
+        Maps["react-native-maps<br/>(native only)"]
+        UI --> Lib
+        UI --> Maps
+    end
+
+    subgraph Supabase["Supabase"]
+        Auth["Auth — phone OTP"]
+        DB[("Postgres + PostGIS")]
+        Storage["Storage — provider photos"]
+    end
+
+    SMS["SMS Provider<br/>(Twilio etc.)"]
+    GMaps["Google Maps SDK<br/>(Android)"]
+    AMaps["Apple Maps<br/>(iOS)"]
+
+    Lib -- supabase-js --> Auth
+    Lib -- supabase-js --> DB
+    Lib -- supabase-js --> Storage
+    Auth --> SMS
+    Maps --> GMaps
+    Maps --> AMaps
+```
+
+There's no custom backend server — Supabase (Postgres + Auth + Storage) is the entire API surface, called directly from the client via `supabase-js`.
+
+## User flow
+
+```mermaid
+flowchart TD
+    Start(["App opens"]) --> HasSession{"Session?"}
+    HasSession -- No --> Phone["Enter phone number"]
+    Phone --> Verify["Enter OTP code"]
+    Verify --> HasSession
+
+    HasSession -- Yes --> HasProfile{"Profile exists?"}
+    HasProfile -- No --> Role["Choose role:<br/>customer / provider / both"]
+    Role --> HasProfile
+
+    HasProfile -- Yes --> IsProvider{"Provider role,<br/>no listing yet?"}
+    IsProvider -- Yes --> ProviderSetup["Set up provider listing<br/>services · radius · bio · photo"]
+    ProviderSetup --> Tabs
+
+    IsProvider -- No --> Tabs["Home / Profile tabs"]
+
+    Tabs --> Home["Home — browse categories, search"]
+    Tabs --> ProfileTab["Profile — identity, language, location, sign out"]
+
+    Home --> Subcats["Subcategories list"]
+    Subcats --> Nearby["Nearby providers — list or map"]
+    Nearby --> Call["Call provider"]
+    Nearby --> Rate["Rate / review provider"]
+
+    ProfileTab --> EditListing["Edit listing (providers)"]
+    ProfileTab --> LocationSettings["Location settings — pin search location"]
+```
+
+## Data model
+
+```mermaid
+erDiagram
+    AUTH_USERS ||--|| PROFILES : id
+    PROFILES ||--o| PROVIDER_DETAILS : "has, if provider"
+    PROFILES ||--o{ REVIEWS : writes
+    PROVIDER_DETAILS ||--o{ PROVIDER_SERVICES : offers
+    PROVIDER_DETAILS ||--o{ REVIEWS : receives
+    CATEGORIES ||--o{ SUBCATEGORIES : has
+    SUBCATEGORIES ||--o{ PROVIDER_SERVICES : "offered as"
+
+    AUTH_USERS {
+        uuid id PK
+    }
+    PROFILES {
+        uuid id PK
+        text phone
+        text full_name
+        text role
+        text preferred_language
+        double search_location_lat
+        double search_location_lng
+        text search_location_label
+    }
+    CATEGORIES {
+        uuid id PK
+        text name_en
+        text name_te
+        text name_hi
+        text icon_url
+    }
+    SUBCATEGORIES {
+        uuid id PK
+        uuid category_id FK
+        text name_en
+        text name_te
+        text name_hi
+    }
+    PROVIDER_DETAILS {
+        uuid id PK
+        uuid profile_id FK
+        text bio
+        integer years_experience
+        geography location
+        integer service_radius_km
+        boolean is_verified
+        text photo_url
+    }
+    PROVIDER_SERVICES {
+        uuid id PK
+        uuid provider_id FK
+        uuid subcategory_id FK
+    }
+    REVIEWS {
+        uuid id PK
+        uuid provider_id FK
+        uuid reviewer_id FK
+        integer rating
+        text comment
+    }
+```
+
+`profiles.id` references `auth.users.id` directly (Supabase-managed). `provider_details.profile_id` is unique — one listing per profile. `reviews` has a unique `(provider_id, reviewer_id)` pair — one review per customer per provider, enforced at the RLS policy level too (a provider can't review themselves). `nearby_providers()` is a PostGIS-backed Postgres function, not a table — it joins `provider_services` → `provider_details` → `profiles`, filters by `ST_DWithin`, and returns distance/rating aggregates sorted nearest-first.
+
 ## Getting started
 
 1. Install dependencies
